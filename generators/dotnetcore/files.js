@@ -186,6 +186,36 @@ export const serverFiles = {
         },
       ],
     },
+    {
+      condition: generator => generator.authenticationType === 'jwt' && generator.applicationType !== 'microservice',
+      path: SERVER_SRC_DIR,
+      templates: [
+        {
+          file: 'Project.Domain/Entities/Position.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_DOMAIN_SUFFIX}/Entities/Position.cs`,
+        },
+      ],
+    },
+    {
+      condition: generator => generator.authenticationType === 'jwt' && generator.applicationType !== 'microservice',
+      path: SERVER_SRC_DIR,
+      templates: [
+        {
+          file: 'Project.Domain/Entities/Permission.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_DOMAIN_SUFFIX}/Entities/Permission.cs`,
+        },
+      ],
+    },
+    {
+      condition: generator => generator.authenticationType === 'jwt' && generator.applicationType !== 'microservice',
+      path: SERVER_SRC_DIR,
+      templates: [
+        {
+          file: 'Project.Domain/Entities/PositionPermission.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_DOMAIN_SUFFIX}/Entities/PositionPermission.cs`,
+        },
+      ],
+    },
   ],
   crosscuttingFiles: [
     {

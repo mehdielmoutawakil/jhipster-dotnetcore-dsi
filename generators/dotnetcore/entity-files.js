@@ -20,6 +20,8 @@
 
 import { SERVER_SRC_DIR, SERVER_TEST_DIR, renameDotNetCore } from '../generator-dotnetcore-constants.js';
 
+console.log("test mehdui");
+
 export const entityFiles = {
   server: [
     {

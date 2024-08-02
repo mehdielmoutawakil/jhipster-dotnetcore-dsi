@@ -20,6 +20,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using Microsoft.EntityFrameworkCore;
+using <%= namespace %>.Infrastructure.Data;
 
 namespace <%= namespace %>.Configuration;
 
@@ -32,9 +34,11 @@ public static class IdentityConfiguration
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
 
-            SeedRoles(roleManager).Wait();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDatabaseContext>();
+
+            // SeedRoles(roleManager).Wait();
             SeedUsers(userManager).Wait();
-            SeedUserRoles(userManager).Wait();
+            // SeedUserRoles(userManager).Wait();
         }
 
         return builder;
@@ -57,46 +61,26 @@ public static class IdentityConfiguration
             new User
             {
                 Id = "user-0",
-                UserName = "system",
+                UserName = "admin",
                 PasswordHash = "$2a$10$mE.qmcV0mFU5NcKh73TZx.z4ueI/.bDWbj0T1BYyqP481kGGarKLG",
                 FirstName = "",
-                LastName = "System",
-                Email = "system@localhost",
+                LastName = "admin",
+                Email = "admin@localhost",
                 Activated = true,
-                LangKey = "en"
+                LangKey = "en",
+                Position = new Position {Name = "ADMIN"}
             },
             new User
             {
                 Id = "user-1",
-                UserName = "anonymoususer",
-                PasswordHash = "$2a$10$j8S5d7Sr7.8VTOYNviDPOeWX8KcYILUVJBsYV83Y5NtECayypx9lO",
-                FirstName = "Anonymous",
-                LastName = "User",
-                Email = "anonymous@localhost",
-                Activated = true,
-                LangKey = "en"
-            },
-            new User
-            {
-                Id = "user-2",
-                UserName = "admin",
-                PasswordHash = "$2a$10$gSAhZrxMllrbgj/kkK9UceBPpChGWJA7SYIb1Mqo.n5aNLq1/oRrC",
-                FirstName = "admin",
-                LastName = "Administrator",
-                Email = "admin@localhost",
-                Activated = true,
-                LangKey = "en"
-            },
-            new User
-            {
-                Id = "user-3",
                 UserName = "user",
-                PasswordHash = "$2a$10$VEjxo0jq2YG9Rbk2HmX9S.k1uZBGYUHdUcid3g/vfiEl7lwWgOH/K",
-                FirstName = "",
+                PasswordHash = "$2a$10$j8S5d7Sr7.8VTOYNviDPOeWX8KcYILUVJBsYV83Y5NtECayypx9lO",
+                FirstName = "user",
                 LastName = "User",
                 Email = "user@localhost",
                 Activated = true,
-                LangKey = "en"
+                LangKey = "en",
+                Position = new Position {Name = "USER"}
             }
         };
     }

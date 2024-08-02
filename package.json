@@ -1,6 +1,6 @@
 {
-  "name": "generator-jhipster-dotnetcore",
-  "version": "4.1.0",
+  "name": "generator-jhipster-dotnetcore-dsi",
+  "version": "4.1.0-dsi",
   "description": "",
   "keywords": [
     "yeoman-generator",
@@ -43,10 +43,12 @@
   },
   "dependencies": {
     "chalk": "^5.3.0",
-    "generator-jhipster": "8.5.0",
     "js-guid": "^1.0.2",
     "pluralize": "^8.0.0",
     "to-pascal-case": "^1.0.0"
+  },
+  "peerDependencies": {
+    "generator-jhipster": "8.6.0"
   },
   "devDependencies": {
     "@j-ulrich/release-it-regex-bumper": "^4.0.0",

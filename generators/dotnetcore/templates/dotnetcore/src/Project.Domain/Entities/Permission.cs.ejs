@@ -1,0 +1,15 @@
+using System.Collections.Generic;
+<%_ if (databaseType === 'mongodb') { _%>
+using AspNetCore.Identity.MongoDbCore.Models;
+<%_ } else { _%>
+using Microsoft.AspNetCore.Identity;
+<%_ } _%>
+
+namespace <%= namespace %>.Domain.Entities;
+
+public class Permission : BaseEntity<int>
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public ICollection<PositionPermission> PositionPermissions { get; set; }
+}

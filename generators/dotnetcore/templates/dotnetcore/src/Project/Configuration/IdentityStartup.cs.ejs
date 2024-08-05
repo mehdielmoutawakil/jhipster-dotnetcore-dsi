@@ -78,7 +78,7 @@ public static class IdentityConfiguration
                 Email = "admin@localhost",
                 Activated = true,
                 LangKey = "en",
-                Position = new Position {Name = "ADMIN"}
+                Position = new Position {Name = "ADMIN", IsAdmin = true}
             },
             new User
             {
@@ -90,7 +90,7 @@ public static class IdentityConfiguration
                 Email = "user@localhost",
                 Activated = true,
                 LangKey = "en",
-                Position = new Position {Name = "USER"}
+                Position = new Position {Name = "USER", IsAdmin = false}
             }
         };
     }
@@ -112,13 +112,13 @@ public static class IdentityConfiguration
     {
         return new List<Permission>
             {
-                new Permission {Name = "User.read"},
-                new Permission {Name = "User.write"},
-                new Permission {Name = "User.delete"},
-    
-                new Permission {Name = "Position.read"},
-                new Permission {Name = "Position.write"},
-                new Permission {Name = "Position.delete"},
+                new Permission {Name = "User.Read",  Group="Users"},
+                new Permission {Name = "User.Write", Group="Users"},
+                new Permission {Name = "User.Delete", Group="Users"},
+                    
+                new Permission {Name = "Position.Read", Group="Positions"},
+                new Permission {Name = "Position.Write", Group="Positions"},
+                new Permission {Name = "Position.Delete", Group="Positions"},
             };
     }
     

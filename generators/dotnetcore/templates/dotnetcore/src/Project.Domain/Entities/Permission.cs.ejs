@@ -9,6 +9,12 @@ namespace <%= namespace %>.Domain.Entities;
 
 public class Permission : BaseEntity<int>
 {
+
+    /// <summary>
+    /// The Group of the permission
+    /// </summary>
+    public string Group { get; set; }
+    
     /// <summary>
     /// The name of the permission
     /// </summary>

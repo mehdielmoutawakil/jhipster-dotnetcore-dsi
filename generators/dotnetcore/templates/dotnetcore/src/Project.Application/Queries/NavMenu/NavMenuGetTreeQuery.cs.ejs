@@ -1,0 +1,11 @@
+﻿using MediatR;
+using System.Collections.Generic;
+using <%= namespace %>.Domain.Entities;
+
+
+namespace <%= namespace %>.Application.Queries
+{
+    public class NavMenuGetTreeQuery : IRequest<List<NavMenu>>
+    {
+    }
+}

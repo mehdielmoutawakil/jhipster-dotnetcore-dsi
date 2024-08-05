@@ -45,6 +45,11 @@ public class ApplicationDatabaseContext : DbContext
     {
         _httpContextAccessor = httpContextAccessor;
     }
+    
+    public DbSet<NavMenu> NavMenus { get; set; }
+    public DbSet<Permission> Permissions { get; set; }
+    public DbSet<Position> Positions { get; set; }
+    public DbSet<PositionPermission> PositionPermissions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -9,8 +9,25 @@ namespace <%= namespace %>.Domain.Entities;
 
 public class Position : BaseEntity<int>
 {
-    public int Id { get; set; }
+
+    /// <summary>
+    /// The position name
+    /// </summary>
     public string Name { get; set; }
+    
+    /// <summary>
+    /// Is the position admin
+    /// used to give full access
+    /// </summary>
+    public bool IsAdmin { get; set; }
+    
+    /// <summary>
+    /// Position users list
+    /// </summary>
     public ICollection<User> Users { get; set; }
+    
+    /// <summary>
+    /// Position permissions list
+    /// </summary>
     public ICollection<PositionPermission> PositionPermissions { get; set; }
 }

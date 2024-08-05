@@ -37,7 +37,17 @@ public static class IdentityConfiguration
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDatabaseContext>();
 
             // SeedRoles(roleManager).Wait();
+            
+            // Run permissions seeder
+            SeedPermissions(dbContext).Wait();
+
+            // Run menu navigations seeder
+            SeedNavMenus(dbContext).Wait();
+
+            // Run users seeder
             SeedUsers(userManager).Wait();
+
+
             // SeedUserRoles(userManager).Wait();
         }
 
@@ -85,6 +95,34 @@ public static class IdentityConfiguration
         };
     }
 
+    private static IEnumerable<NavMenu> NavMenus()
+    {
+        return new List<NavMenu>
+        {
+            new NavMenu {Title = "Gestion", Type = "collapsable", Icon = "heroicons_outline:home", Link = "", Parent = null, ShouldHave = null},
+            new NavMenu {Title = "Paramètrage", Type = "collapsable", Icon = "heroicons_outline:cog", Link = "", Parent = null, ShouldHave = null},
+
+            new NavMenu {Title = "Roles & permissions", Type = "basic", Icon = "heroicons_outline:lock-closed", Link = "roles", Parent = new NavMenu {Title = "Paramètrage"}, ShouldHave = ["Position.read"]},
+
+            new NavMenu {Title = "Utilisateurs", Type = "basic", Icon = "heroicons_outline:users", Link = "users", Parent = new NavMenu {Title = "Paramètrage"}, ShouldHave = ["User.read"]},
+        };
+    }
+
+    private static IEnumerable<Permission> Permissions()
+    {
+        return new List<Permission>
+            {
+                new Permission {Name = "User.read"},
+                new Permission {Name = "User.write"},
+                new Permission {Name = "User.delete"},
+    
+                new Permission {Name = "Position.read"},
+                new Permission {Name = "Position.write"},
+                new Permission {Name = "Position.delete"},
+            };
+    }
+    
+
     private static IDictionary<string, string[]> UserRoles()
     {
         return new Dictionary<string, string[]>
@@ -120,6 +158,58 @@ public static class IdentityConfiguration
             }
         }
     }
+
+    private static async Task SeedPermissions(ApplicationDatabaseContext databaseContext)
+    {
+        foreach (var permission in Permissions())
+        {
+            var dbPermission = await databaseContext.Permissions.FirstOrDefaultAsync(p => p.Name == permission.Name);
+
+            if (dbPermission == null)
+            {
+                await databaseContext.Permissions.AddAsync(permission);
+            }
+            else
+            {
+                databaseContext.Permissions.Update(dbPermission);
+            }
+        }
+    }
+
+    private static async Task SeedNavMenus(ApplicationDatabaseContext databaseContext)
+    {
+        foreach (NavMenu navmenu in NavMenus())
+        {
+            try
+            {
+                NavMenu dbNavMenu = await databaseContext.NavMenus.FirstOrDefaultAsync(nav => nav.Title == navmenu.Title);
+                NavMenu dbNavMenuParent = null;
+
+
+                if (navmenu.Parent != null)
+                {
+                    navmenu.Parent = await databaseContext.NavMenus.FirstOrDefaultAsync(nav => nav.Title == navmenu.Parent.Title);
+                }
+
+                if (dbNavMenu == null)
+                {
+                    await databaseContext.NavMenus.AddAsync(navmenu);
+                }
+                else
+                {
+                    databaseContext.NavMenus.Update(dbNavMenu);
+                }
+
+                databaseContext.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                Log.ForContext(typeof(IdentityConfiguration)).Warning(e,
+                    "Tests are running in parallel, take care of database race conditions");
+            }
+        }
+    }
+
 
     private static async Task SeedUsers(UserManager<User> userManager)
     {

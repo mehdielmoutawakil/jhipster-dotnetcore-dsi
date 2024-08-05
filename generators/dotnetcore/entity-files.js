@@ -20,7 +20,7 @@
 
 import { SERVER_SRC_DIR, SERVER_TEST_DIR, renameDotNetCore } from '../generator-dotnetcore-constants.js';
 
-console.log("test mehdui");
+console.log('Edited by MEHDI ELMOUTAWAKIL');
 
 export const entityFiles = {
   server: [
@@ -89,6 +89,14 @@ export const entityCommonFiles = {
       path: SERVER_SRC_DIR,
       renameTo: renameDotNetCore(),
       templates: ['Project/Configuration/AutoMapper/AutoMapperProfile_withEntities_.cs'],
+    },
+  ],
+  serverProgram: [
+    {
+      path: SERVER_SRC_DIR,
+      templates: [
+        { file: 'Project/Program_withEntities_.cs', renameTo: generator => `${generator.mainProjectDir}/Program_withEntities_.cs` },
+      ],
     },
   ],
   db: [

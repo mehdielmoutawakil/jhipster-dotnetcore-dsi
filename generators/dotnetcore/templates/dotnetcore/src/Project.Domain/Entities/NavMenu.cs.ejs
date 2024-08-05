@@ -1,0 +1,85 @@
+using System;
+using System.Collections.Generic;
+<%_ if (databaseType === 'mongodb') { _%>
+using AspNetCore.Identity.MongoDbCore.Models;
+<%_ } else { _%>
+using Microsoft.AspNetCore.Identity;
+<%_ } _%>
+using System.ComponentModel.DataAnnotations;
+
+namespace <%= namespace %>.Domain.Entities;
+
+public class NavMenu : BaseEntity<int?>
+{
+    /// <summary>
+    /// The menu title
+    /// </summary>
+    [Required]
+    public string? Title { get; set; }
+    
+    /// <summary>
+    /// The menu type
+    /// </summary>
+    [Required]
+    public string? Type { get; set; }
+    
+    /// <summary>
+    /// The menu icon
+    /// </summary>
+    public string? Icon { get; set; }
+    
+    /// <summary>
+    /// The menu link
+    /// </summary>
+    public string? Link { get; set; }
+    
+    
+    /// <summary>
+    /// The menu permessions
+    /// </summary>
+    public string[]? ShouldHave { get; set; }
+    
+    /// <summary>
+    /// The menu children
+    /// </summary>
+    public IList<NavMenu> Children { get; set; } = new List<NavMenu>();
+    
+    /// <summary>
+    /// The menu parent Id
+    /// </summary>
+    public int? ParentId { get; set; }
+    
+    
+    /// <summary>
+    /// The menu parent
+    /// </summary>
+    public NavMenu Parent { get; set; }
+
+    // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
+
+    public override bool Equals(object obj)
+    {
+        if (this == obj) return true;
+        if (obj == null || GetType() != obj.GetType()) return false;
+        var navMenu = obj as NavMenu;
+        if (navMenu?.Id == null || navMenu?.Id == 0 || Id == 0) return false;
+        return EqualityComparer<int>.Equals(Id, navMenu.Id);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Id);
+    }
+
+    public override string ToString()
+    {
+        return "NavigationItems{" +
+                $"ID='{Id}'" +
+                $", Title='{Title}'" +
+                $", Type='{Type}'" +
+                $", Icon='{Icon}'" +
+                $", Link='{Link}'" +
+                $", ShouldHave='{string.Join(",", ShouldHave)}'" +
+                "}";
+    }
+}

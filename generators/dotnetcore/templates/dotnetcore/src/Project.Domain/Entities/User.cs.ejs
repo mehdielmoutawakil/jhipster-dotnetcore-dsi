@@ -38,47 +38,102 @@ public class User : IdentityUser, IAuditedEntityBase
         set => UserName = value;
     }
 
+    /// <summary>
+    /// The user firstname
+    /// </summary>
+    
     [StringLength(50)]
     [Column("first_name")]
     public string FirstName { get; set; }
-
+    
+    /// <summary>
+    /// The user lastname
+    /// </summary>
+    /// 
     [StringLength(50)]
     [Column("last_name")]
     public string LastName { get; set; }
-
+    
+    /// <summary>
+    /// The user Activated
+    /// </summary>
     [Required] public bool Activated { get; set; }
-
+    
+    
+    /// <summary>
+    /// The user LangKey
+    /// </summary>
+    
     [StringLength(6, MinimumLength = 2)]
     [Column("lang_key")]
     public string LangKey { get; set; }
-
+    
+    
+    /// <summary>
+    /// The user ImageUrl
+    /// </summary>
     [Url]
     [StringLength(256)]
     [Column("image_url")]
     public string ImageUrl { get; set; }
-
+    
+    /// <summary>
+    /// The user ActivationKey
+    /// </summary>
     [StringLength(20)]
     [Column("activation_key")]
     [JsonIgnore]
     public string ActivationKey { get; set; }
-
+    
+    /// <summary>
+    /// The user ResetKey
+    /// </summary>
     [StringLength(20)]
     [Column("reset_key")]
     [JsonIgnore]
     public string ResetKey { get; set; }
-
+    
+    
+    /// <summary>
+    /// The user ResetDate
+    /// </summary>
     [Column("reset_date")] 
     public DateTime? ResetDate { get; set; }
-
+    
+    /// <summary>
+    /// The user Roles
+    /// </summary>
     [JsonIgnore] 
     public virtual ICollection<UserRole> UserRoles { get; set; }
-
+    
+    /// <summary>
+    /// The user PositionId
+    /// </summary>
     public int? PositionId { get; set; }
+    
+    /// <summary>
+    /// The user Position
+    /// </summary>
     public Position Position { get; set; }
-
+    
+    /// <summary>
+    /// The user CreatedBy
+    /// </summary>
     public string CreatedBy { get; set; }
+    
+    /// <summary>
+    /// The user CreatedDate
+    /// </summary>
     public DateTime CreatedDate { get; set; }
+    
+    /// <summary>
+    /// The user LastModifiedBy
+    /// </summary>
     public string LastModifiedBy { get; set; }
+    
+    /// <summary>
+    /// The user LastModifiedDate
+    /// </summary>
     public DateTime LastModifiedDate { get; set; }
 
     public override bool Equals(object obj)

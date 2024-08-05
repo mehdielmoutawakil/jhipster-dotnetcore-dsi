@@ -1,0 +1,43 @@
+﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using <%= namespace %>.Domain.Entities;
+using <%= namespace %>.Infrastructure.Data;
+
+namespace <%= namespace %>.Application.Queries
+{
+    public class NavMenuGetTreeQueryHandler : IRequestHandler<NavMenuGetTreeQuery, List<NavMenu>>
+    {
+        private readonly ApplicationDatabaseContext _context;
+
+        public NavMenuGetTreeQueryHandler(ApplicationDatabaseContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<List<NavMenu>> Handle(NavMenuGetTreeQuery request, CancellationToken cancellationToken)
+        {
+            var navigation = await _context.NavMenus.ToListAsync(cancellationToken);
+            return BuildNavigationTree(navigation, null);
+        }
+
+        private List<NavMenu> BuildNavigationTree(List<NavMenu> navigation, long? parentId)
+        {
+            return navigation
+                .Where(m => m.ParentId == parentId)
+                .Select(m => new NavMenu
+                {
+                    Title = m.Title,
+                    Type = m.Type,
+                    Link = m.Link,
+                    Icon = m.Icon,
+                    Children = BuildNavigationTree(navigation, m.Id),
+                    ShouldHave = m.ShouldHave
+                })
+                .ToList();
+        }
+    }
+}

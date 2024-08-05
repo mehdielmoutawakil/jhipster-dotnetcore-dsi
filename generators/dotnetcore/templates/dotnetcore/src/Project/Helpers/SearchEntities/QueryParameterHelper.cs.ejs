@@ -1,0 +1,65 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this
+
+using <%= namespace %>.Dto;
+using System.Collections.Generic;
+using System;
+
+namespace <%= namespace %>.Helpers.SearchEntities
+{
+    public static class QueryParameterHelper
+    {
+        public static (List<SearchQuery> Filters, int PageNumber, int PageSize, string Sort) ProcessQueryParameters(
+            IDictionary<string, string> queryParameters)
+        {
+            var filters = new List<SearchQuery>();
+            int pageNumber = 1;
+            int pageSize = 10;
+            string sort = null;
+
+            foreach (var param in queryParameters)
+            {
+                if (param.Key.Equals("pageNumber", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!int.TryParse(param.Value, out pageNumber) || pageNumber < 1)
+                    {
+                        throw new ArgumentException("Invalid value for pageNumber. It must be a positive integer.");
+                    }
+                }
+                else if (param.Key.Equals("pageSize", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!int.TryParse(param.Value, out pageSize) || pageSize < 1)
+                    {
+                        throw new ArgumentException("Invalid value for pageSize. It must be a positive integer.");
+                    }
+                }
+                else if (param.Key.Equals("sort", StringComparison.OrdinalIgnoreCase))
+                {
+                    sort = param.Value;
+                }
+                else
+                {
+                    var filterParts = param.Key.Split(':');
+                    if (filterParts.Length != 2)
+                    {
+                        throw new ArgumentException($"Invalid filter format for key '{param.Key}'. Expected format is 'field:operator'.");
+                    }
+
+                    var field = filterParts[0];
+                    var @operator = filterParts[1];
+                    var filterValue = param.Value;
+
+                    filters.Add(new SearchQuery
+                    {
+                        Field = field,
+                        Operator = @operator,
+                        Value = filterValue
+                    });
+                }
+            }
+
+            return (filters, pageNumber, pageSize, sort);
+        }
+    }
+
+}

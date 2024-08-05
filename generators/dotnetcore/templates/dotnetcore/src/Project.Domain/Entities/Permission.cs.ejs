@@ -9,7 +9,13 @@ namespace <%= namespace %>.Domain.Entities;
 
 public class Permission : BaseEntity<int>
 {
-    public int Id { get; set; }
+    /// <summary>
+    /// The name of the permission
+    /// </summary>
     public string Name { get; set; }
+    
+    /// <summary>
+    /// The position permissions
+    /// </summary>
     public ICollection<PositionPermission> PositionPermissions { get; set; }
 }

@@ -9,8 +9,23 @@ namespace <%= namespace %>.Domain.Entities;
 
 public class PositionPermission : BaseEntity<int>
 {
-    public int RoleId { get; set; }
+    /// <summary>
+    /// The position id
+    /// </summary>
+    public int PositionId { get; set; }
+    
+    /// <summary>
+    /// The position object
+    /// </summary>
     public Position Position { get; set; }
+    
+    /// <summary>
+    /// The permission id 
+    /// </summary>
     public int PermissionId { get; set; }
+    
+    /// <summary>
+    /// The permission object
+    /// </summary>
     public Permission Permission { get; set; }
 }

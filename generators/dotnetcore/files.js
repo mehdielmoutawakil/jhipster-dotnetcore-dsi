@@ -118,6 +118,53 @@ export const serverFiles = {
       ],
     },
   ],
+  serverHelpers: [
+    {
+      path: SERVER_SRC_DIR,
+      templates: [
+        {
+          file: 'Project/Helpers/SearchEntities/PaginationResult.cs',
+          renameTo: generator => `${generator.mainProjectDir}/Helpers/SearchEntities/PaginationResult.cs`,
+        },
+      ],
+    },
+    {
+      path: SERVER_SRC_DIR,
+      templates: [
+        {
+          file: 'Project/Helpers/SearchEntities/QueryableExtensions.cs',
+          renameTo: generator => `${generator.mainProjectDir}/Helpers/SearchEntities/QueryableExtensions.cs`,
+        },
+      ],
+    },
+    {
+      path: SERVER_SRC_DIR,
+      templates: [
+        {
+          file: 'Project/Helpers/SearchEntities/QueryParameterHelper.cs',
+          renameTo: generator => `${generator.mainProjectDir}/Helpers/SearchEntities/QueryParameterHelper.cs`,
+        },
+      ],
+    },
+    {
+      path: SERVER_SRC_DIR,
+      templates: [
+        {
+          file: 'Project/Helpers/SearchEntities/SearchEntitiesHandler.cs',
+          renameTo: generator => `${generator.mainProjectDir}/Helpers/SearchEntities/SearchEntitiesHandler.cs`,
+        },
+      ],
+    },
+    {
+      path: SERVER_SRC_DIR,
+      templates: [
+        {
+          file: 'Project/Helpers/SearchEntities/SearchEntityRequest.cs',
+          renameTo: generator => `${generator.mainProjectDir}/Helpers/SearchEntities/SearchEntityRequest.cs`,
+        },
+      ],
+    },
+  ],
   domainFiles: [
     {
       path: SERVER_SRC_DIR,
@@ -213,6 +260,16 @@ export const serverFiles = {
         {
           file: 'Project.Domain/Entities/PositionPermission.cs',
           renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_DOMAIN_SUFFIX}/Entities/PositionPermission.cs`,
+        },
+      ],
+    },
+    {
+      condition: generator => generator.authenticationType === 'jwt' && generator.applicationType !== 'microservice',
+      path: SERVER_SRC_DIR,
+      templates: [
+        {
+          file: 'Project.Domain/Entities/NavMenu.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_DOMAIN_SUFFIX}/Entities/NavMenu.cs`,
         },
       ],
     },
@@ -958,6 +1015,22 @@ export const serverFiles = {
       ],
     },
     {
+      condition: generator =>
+        generator.applicationType !== 'microservice' && generator.cqrsEnabled === true && generator.authenticationType === 'jwt',
+      path: SERVER_SRC_DIR,
+      templates: [
+        {
+          file: 'Project.Application/Queries/NavMenu/NavMenuGetTreeQuery.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Queries/NavMenu/NavMenuGetTreeQuery.cs`,
+        },
+        {
+          file: 'Project.Application/Queries/NavMenu/NavMenuGetTreeQueryHandler.cs',
+          renameTo: generator =>
+            `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Queries/NavMenu/NavMenuGetTreeQueryHandler.cs`,
+        },
+      ],
+    },
+    {
       path: SERVER_SRC_DIR,
       templates: [
         {
@@ -983,6 +1056,16 @@ export const serverFiles = {
         {
           file: 'Project/Controllers/UsersController.cs',
           renameTo: generator => `${generator.mainProjectDir}/Controllers/UsersController.cs`,
+        },
+      ],
+    },
+    {
+      condition: generator => generator.authenticationType === 'jwt' && generator.applicationType !== 'microservice',
+      path: SERVER_SRC_DIR,
+      templates: [
+        {
+          file: 'Project/Controllers/NavMenuController.cs',
+          renameTo: generator => `${generator.mainProjectDir}/Controllers/NavMenuController.cs`,
         },
       ],
     },

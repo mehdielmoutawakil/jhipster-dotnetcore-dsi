@@ -1,0 +1,11 @@
+using MediatR;
+using System.Collections.Generic;
+using <%= namespace %>.Dto;
+
+
+namespace <%= namespace %>.Application.Queries
+{
+    public class PermissionGetAllQuery : IRequest<List<PermissionDto>>
+    {
+    }
+}

@@ -1,6 +1,6 @@
 {
-  "name": "generator-jhipster-dotnetcore-dsi",
-  "version": "4.1.1-dsi",
+  "name": "generator-dotnetcore-dsi",
+  "version": "1.0.0-dsi",
   "description": "",
   "keywords": [
     "yeoman-generator",
@@ -10,7 +10,7 @@
   ],
   "homepage": "https://github.com/jhipster/jhipster-dotnetcore",
   "bugs": {
-    "url": "https://github.com/danielpetisme/generator-jhipster-dotnetcore/issues"
+    "url": "https://github.com/mehdielmoutawakil/jhipster-dotnetcore-dsi/issues"
   },
   "repository": {
     "type": "git",
@@ -18,8 +18,8 @@
   },
   "license": "Apache-2.0",
   "author": {
-    "name": "Daniel Petisme",
-    "email": "daniel@jhipster.tech",
+    "name": "Dsi Conseil & Services",
+    "email": "anass@dsi-cs.com",
     "url": ""
   },
   "type": "module",

@@ -1,0 +1,33 @@
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using <%= namespace %>.Dto;
+using <%= namespace %>.Infrastructure.Data;
+
+namespace <%= namespace %>.Application.Queries
+{
+    public class PermissionGetAllQueryHandler : IRequestHandler<PermissionGetAllQuery, List<PermissionDto>>
+    {
+        private readonly ApplicationDatabaseContext _context;
+
+        public PermissionGetAllQueryHandler(ApplicationDatabaseContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<List<PermissionDto>> Handle(PermissionGetAllQuery request, CancellationToken cancellationToken)
+        {
+            var permissions = await _context.Permissions.ToListAsync(cancellationToken);
+            return permissions
+                .Select(m => new PermissionDto
+                {
+                    Name = m.Name,
+                    Group = m.Group,
+                })
+                .ToList();
+        }
+    }
+}

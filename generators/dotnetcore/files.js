@@ -365,6 +365,16 @@ export const serverFiles = {
       ],
     },
     {
+      condition: generator => generator.applicationType !== 'microservice',
+      path: SERVER_SRC_DIR,
+      templates: [
+        {
+          file: 'Project.Dto/PermissionDto.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_DTO_SUFFIX}/PermissionDto.cs`,
+        },
+      ],
+    },
+    {
       path: SERVER_SRC_DIR,
       templates: [
         {
@@ -1031,6 +1041,22 @@ export const serverFiles = {
       ],
     },
     {
+      condition: generator =>
+        generator.applicationType !== 'microservice' && generator.cqrsEnabled === true && generator.authenticationType === 'jwt',
+      path: SERVER_SRC_DIR,
+      templates: [
+        {
+          file: 'Project.Application/Queries/Permission/PermissionGetAllQuery.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Queries/Permission/PermissionGetAllQuery.cs`,
+        },
+        {
+          file: 'Project.Application/Queries/Permission/PermissionGetAllQueryHandler.cs',
+          renameTo: generator =>
+            `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Queries/Permission/PermissionGetAllQueryHandler.cs`,
+        },
+      ],
+    },
+    {
       path: SERVER_SRC_DIR,
       templates: [
         {
@@ -1066,6 +1092,16 @@ export const serverFiles = {
         {
           file: 'Project/Controllers/NavMenuController.cs',
           renameTo: generator => `${generator.mainProjectDir}/Controllers/NavMenuController.cs`,
+        },
+      ],
+    },
+    {
+      condition: generator => generator.authenticationType === 'jwt' && generator.applicationType !== 'microservice',
+      path: SERVER_SRC_DIR,
+      templates: [
+        {
+          file: 'Project/Controllers/PermissionController.cs',
+          renameTo: generator => `${generator.mainProjectDir}/Controllers/PermissionController.cs`,
         },
       ],
     },

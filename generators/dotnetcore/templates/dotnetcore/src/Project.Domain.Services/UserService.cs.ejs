@@ -33,6 +33,10 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Driver.Linq;
 using <%= namespace %>.Infrastructure.Data.Extensions;
 <%_ } _%>
+using System.Security.Claims;
+using Azure;
+using <%= namespace %>.Infrastructure.Data;
+using LanguageExt;
 
 namespace <%= namespace %>.Domain.Services;
 
@@ -43,16 +47,18 @@ public class UserService : IUserService
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly RoleManager<Role> _roleManager;
     private readonly UserManager<User> _userManager;
+    private readonly ApplicationDatabaseContext _databaseContext;
 
     public UserService(ILogger<UserService> log, UserManager<User> userManager,
         IPasswordHasher<User> passwordHasher, RoleManager<Role> roleManager,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor, ApplicationDatabaseContext databaseContext)
     {
         _log = log;
         _userManager = userManager;
         _passwordHasher = passwordHasher;
         _roleManager = roleManager;
         _httpContextAccessor = httpContextAccessor;
+        _databaseContext = databaseContext;
     }
 
     public virtual async Task<User> CreateUser(User userToCreate)
@@ -360,4 +366,28 @@ public class UserService : IUserService
         await _userManager.RemoveFromRolesAsync(user, roles);
     }
     <%_ } _%>
+
+    public async Task<User> GetConnectedUser()
+    {
+        var user = _httpContextAccessor.HttpContext?.User;
+
+        if (user == null || !user.Identity.IsAuthenticated)
+        {
+            // Handle the case where the user is not authenticated
+            return null;
+        }
+
+        // Extract user information from claims
+        var userName = user.Identity.Name;
+
+        // Use Include to eagerly load the Position entity
+        User? currentUser = await _databaseContext.Users
+            .Include(u => u.Position)
+            .ThenInclude(p => p.PositionPermissions)
+            .ThenInclude(pp => pp.Permission)
+            .FirstOrDefaultAsync(u => u.Login == userName);
+
+        // Create and return the User object with Position included
+        return currentUser;
+    }
 }

@@ -1,10 +1,12 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using <%= namespace %>.Domain.Entities;
+using <%= namespace %>.Domain.Services;
 using <%= namespace %>.Infrastructure.Data;
 
 namespace <%= namespace %>.Application.Queries
@@ -12,32 +14,97 @@ namespace <%= namespace %>.Application.Queries
     public class NavMenuGetTreeQueryHandler : IRequestHandler<NavMenuGetTreeQuery, List<NavMenu>>
     {
         private readonly ApplicationDatabaseContext _context;
+        private readonly UserService _userService;
 
-        public NavMenuGetTreeQueryHandler(ApplicationDatabaseContext context)
+        public NavMenuGetTreeQueryHandler(ApplicationDatabaseContext context, UserManager<User> userManager, UserService userService)
         {
             _context = context;
+            _userService = userService;
         }
 
         public async Task<List<NavMenu>> Handle(NavMenuGetTreeQuery request, CancellationToken cancellationToken)
         {
             var navigation = await _context.NavMenus.ToListAsync(cancellationToken);
-            return BuildNavigationTree(navigation, null);
+            var user = await _userService.GetConnectedUser();
+
+            // Build full menu if the user position is an admin
+            if (user?.Position?.IsAdmin == true)
+            {
+                return await BuildAdminNavigationTree(navigation, null, user);
+            } else
+            {
+                var positionPermissions = user.Position.PositionPermissions
+                    .Select(pp => pp.Permission.Name).ToList();
+
+                return await BuildNavigationTree(navigation, null, positionPermissions);
+            }
         }
 
-        private List<NavMenu> BuildNavigationTree(List<NavMenu> navigation, long? parentId)
+        private async Task<List<NavMenu>> BuildAdminNavigationTree(List<NavMenu> navigation, long? parentId, User user)
         {
-            return navigation
-                .Where(m => m.ParentId == parentId)
-                .Select(m => new NavMenu
+            var children = new List<NavMenu>();
+
+            foreach (var item in navigation.Where(m => m.ParentId == parentId))
+            {
+                var childNavMenu = new NavMenu
                 {
-                    Title = m.Title,
-                    Type = m.Type,
-                    Link = m.Link,
-                    Icon = m.Icon,
-                    Children = BuildNavigationTree(navigation, m.Id),
-                    ShouldHave = m.ShouldHave
-                })
-                .ToList();
+                    Title = item.Title,
+                    Type = item.Type,
+                    Link = item.Link,
+                    Icon = item.Icon,
+                    Children = await BuildAdminNavigationTree(navigation, item.Id, user),
+                    ShouldHave = item.ShouldHave
+                };
+
+                children.Add(childNavMenu);
+            }
+
+            return children;
+        }
+
+        private async Task<List<NavMenu>> BuildNavigationTree(List<NavMenu> navigation, long? parentId, IEnumerable<string> positionPermissions)
+        {
+            var children = new List<NavMenu>();
+
+            foreach (var item in navigation.Where(m => m.ParentId == parentId))
+            {
+                var requiredPermissions = item.ShouldHave;
+
+                if (requiredPermissions != null)
+                {
+                    if (requiredPermissions.All(rp => positionPermissions.Contains(rp)))
+                    {
+                        var childNavMenu = new NavMenu
+                        {
+                            Title = item.Title,
+                            Type = item.Type,
+                            Link = item.Link,
+                            Icon = item.Icon,
+                            Children = await BuildNavigationTree(navigation, item.Id, positionPermissions),
+                            ShouldHave = item.ShouldHave
+                        };
+
+
+                        children.Add(childNavMenu);
+                    }
+                } else
+                {
+                    var childNavMenu = new NavMenu
+                    {
+                        Title = item.Title,
+                        Type = item.Type,
+                        Link = item.Link,
+                        Icon = item.Icon,
+                        Children = await BuildNavigationTree(navigation, item.Id, positionPermissions),
+                        ShouldHave = item.ShouldHave
+                    };
+
+
+                    children.Add(childNavMenu);
+                }
+            }
+
+            return children;
         }
     }
 }

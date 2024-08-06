@@ -1,90 +1,23 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this
 
-using <%= namespace %>.Application.Queries;
-using <%= namespace %>.Dto;
-using <%= namespace %>.Infrastructure.Data;
-using MediatR;
-using System.Linq.Expressions;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Threading;
 using System;
-using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Text;
+using System.Threading.Tasks;
 
-public class SearchQuery
+namespace <%= namespace %>.Application.Queries
 {
-    public string Field { get; set; }
-    public string Operator { get; set; }
-    public string Value { get; set; }
-}
-namespace <%= namespace %>.Helpers.SearchEntities
-{
-    public class SearchQueryHandler<TEntity> : IRequestHandler<SearchdQueryRequest<TEntity>, PaginatedResult<TEntity>> where TEntity : class
+    
+    public static class FilterHelper
     {
-        private readonly ApplicationDatabaseContext _context;
-
-        public SearchQueryHandler(ApplicationDatabaseContext context)
-        {
-            _context = context;
-        }
-
-        public async Task<PaginatedResult<TEntity>> Handle(SearchdQueryRequest<TEntity> request, CancellationToken cancellationToken)
-        {
-            IQueryable<TEntity> query = _context.Set<TEntity>().AsQueryable();
-
-            // Apply filters
-            foreach (var filter in request.Filters)
-            {
-                query = ApplyFilter(query, filter);
-            }
-
-            // Apply sorting
-            if (!string.IsNullOrWhiteSpace(request.Sort))
-            {
-                var sortParams = request.Sort.Split(',');
-                if (sortParams.Length == 2)
-                {
-                    var sortField = sortParams[0];
-                    var sortDirection = sortParams[1].ToLower();
-
-                    if (sortDirection == "asc")
-                    {
-                        query = query.OrderByDynamic(sortField, true);
-                    }
-                    else if (sortDirection == "desc")
-                    {
-                        query = query.OrderByDynamic(sortField, false);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException($"Unsupported sort direction: {sortDirection}");
-                    }
-                }
-                else
-                {
-                    throw new InvalidOperationException("Sort parameter format is invalid. Expected format is 'field,direction'.");
-                }
-            }
-
-            var totalCount = await query.CountAsync(cancellationToken);
-            var items = await query
-                .Skip((request.PageNumber - 1) * request.PageSize)
-                .Take(request.PageSize)
-                .ToListAsync(cancellationToken);
-
-            return new PaginatedResult<TEntity>
-            {
-                Data = items,
-                TotalCount = totalCount
-            };
-        }
-
-        private IQueryable<TEntity> ApplyFilter(IQueryable<TEntity> query, SearchQuery filter)
+        public static IQueryable<T> ApplyFilter<T>(IQueryable<T> query, SearchQuery filter)
         {
             try
             {
-                var parameter = Expression.Parameter(typeof(TEntity), "e");
+                var parameter = Expression.Parameter(typeof(T), "e");
                 var property = Expression.Property(parameter, filter.Field);
 
                 // Determine the underlying type of the property (handling nullable types)
@@ -178,7 +111,7 @@ namespace <%= namespace %>.Helpers.SearchEntities
                     }
                 }
 
-                var lambda = Expression.Lambda<Func<TEntity, bool>>(comparison, parameter);
+                var lambda = Expression.Lambda<Func<T, bool>>(comparison, parameter);
                 return query.Where(lambda);
             }
             catch (Exception ex)
@@ -188,5 +121,5 @@ namespace <%= namespace %>.Helpers.SearchEntities
             }
         }
     }
-
 }
+

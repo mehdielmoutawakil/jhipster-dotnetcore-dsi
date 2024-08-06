@@ -1,0 +1,14 @@
+﻿using MediatR;
+using System.Collections.Generic;
+using Test6.Dto;
+
+namespace <%= namespace %>.Application.Queries
+{
+    public class UserSearchQuery : IRequest<PaginatedResult<UserDetailDto>>
+    {
+        public List<SearchQuery> Filters { get; set; }
+        public int PageNumber { get; set; }
+        public int PageSize { get; set; }
+        public string Sort { get; set; }
+    }
+}

@@ -1,12 +1,19 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this
 
 using <%= namespace %>.Dto;
 using System.Collections.Generic;
 using System;
+using <%= namespace %>.Application.Queries;
 
-namespace <%= namespace %>.Helpers.SearchEntities
+namespace <%= namespace %>.Application.Queries
 {
+    public class SearchQuery
+    {
+        public string Field { get; set; }
+        public string Operator { get; set; }
+        public string Value { get; set; }
+    }
     public static class QueryParameterHelper
     {
         public static (List<SearchQuery> Filters, int PageNumber, int PageSize, string Sort) ProcessQueryParameters(
@@ -21,17 +28,19 @@ namespace <%= namespace %>.Helpers.SearchEntities
             {
                 if (param.Key.Equals("pageNumber", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (!int.TryParse(param.Value, out pageNumber) || pageNumber < 1)
-                    {
-                        throw new ArgumentException("Invalid value for pageNumber. It must be a positive integer.");
-                    }
+                    // if (!int.TryParse(param.Value, out pageNumber) || pageNumber < 1)
+                    // {
+                    //     throw new ArgumentException("Invalid value for pageNumber. It must be a positive integer.");
+                    // }
+                    int.TryParse(param.Value, out pageNumber);
                 }
                 else if (param.Key.Equals("pageSize", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (!int.TryParse(param.Value, out pageSize) || pageSize < 1)
-                    {
-                        throw new ArgumentException("Invalid value for pageSize. It must be a positive integer.");
-                    }
+                    // if (!int.TryParse(param.Value, out pageSize) || pageSize < 1)
+                    // {
+                    //     throw new ArgumentException("Invalid value for pageSize. It must be a positive integer.");
+                    // }
+                    int.TryParse(param.Value, out pageSize);
                 }
                 else if (param.Key.Equals("sort", StringComparison.OrdinalIgnoreCase))
                 {

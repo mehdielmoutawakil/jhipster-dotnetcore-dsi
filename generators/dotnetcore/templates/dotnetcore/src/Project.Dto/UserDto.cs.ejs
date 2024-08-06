@@ -66,3 +66,17 @@ public class UserDto
     [JsonPropertyName("authorities")]
     public ISet<string> Roles { get; set; }
 }
+
+public class UserDetailDto
+{
+    public string Id { get; set; }
+    public string Login { get; set; }
+    public string FirstName { get; set; }
+    [MaxLength(50)] public string LastName { get; set; }
+    public string Email { get; set; }
+    public bool Activated { get; set; }
+    public string LangKey { get; set; }
+    public string CreatedBy { get; set; }
+    public DateTime? CreatedDate { get; set; }
+    public PositionDto Position { get; set; }
+}

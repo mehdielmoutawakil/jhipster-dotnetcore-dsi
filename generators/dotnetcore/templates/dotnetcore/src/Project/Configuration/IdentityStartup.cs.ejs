@@ -102,9 +102,9 @@ public static class IdentityConfiguration
             new NavMenu {Title = "Gestion", Type = "collapsable", Icon = "heroicons_outline:home", Link = "", Parent = null, ShouldHave = null},
             new NavMenu {Title = "Paramètrage", Type = "collapsable", Icon = "heroicons_outline:cog", Link = "", Parent = null, ShouldHave = null},
 
-            new NavMenu {Title = "Roles & permissions", Type = "basic", Icon = "heroicons_outline:lock-closed", Link = "roles", Parent = new NavMenu {Title = "Paramètrage"}, ShouldHave = ["Position.Read"]},
+            new NavMenu {Title = "Roles & permissions", Type = "basic", Icon = "heroicons_outline:lock-closed", Link = "Position", Parent = new NavMenu {Title = "Paramètrage"}, ShouldHave = ["Position.Read"]},
 
-            new NavMenu {Title = "Utilisateurs", Type = "basic", Icon = "heroicons_outline:users", Link = "users", Parent = new NavMenu {Title = "Paramètrage"}, ShouldHave = ["User.Read"]},
+            new NavMenu {Title = "Utilisateurs", Type = "basic", Icon = "heroicons_outline:users", Link = "User", Parent = new NavMenu {Title = "Paramètrage"}, ShouldHave = ["User.Read"]},
         };
     }
 

@@ -1,0 +1,83 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this
+ 
+using MediatR;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using <%= namespace %>.Domain.Entities;
+using <%= namespace %>.Infrastructure.Data;
+
+namespace <%= namespace %>.Application.Queries
+{
+    class <%= pascalizedEntityClass %>SearchQueryHandler : IRequestHandler<<%= pascalizedEntityClass %>SearchQuery, PaginatedResult<<%= pascalizedEntityClass %>>>
+    {
+        private readonly ApplicationDatabaseContext _context;
+
+        public <%= pascalizedEntityClass %>SearchQueryHandler(ApplicationDatabaseContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<PaginatedResult<<%= pascalizedEntityClass %>>> Handle(<%= pascalizedEntityClass %>SearchQuery request, CancellationToken cancellationToken)
+        {
+            IQueryable<<%= pascalizedEntityClass %>> query =  _context.<%= pascalizedEntityClass %>.AsQueryable();
+
+            // Apply filters
+            foreach (var filter in request.Filters)
+            {
+                query = FilterHelper.ApplyFilter(query, filter);
+            }
+
+            // Apply sorting
+            if (!string.IsNullOrWhiteSpace(request.Sort))
+            {
+                var sortParams = request.Sort.Split(',');
+                if (sortParams.Length == 2)
+                {
+                    var sortField = sortParams[0];
+                    var sortDirection = sortParams[1].ToLower();
+
+                    if (sortDirection == "asc")
+                    {
+                        query = query.OrderByDynamic(sortField, true);
+                    }
+                    else if (sortDirection == "desc")
+                    {
+                        query = query.OrderByDynamic(sortField, false);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Unsupported sort direction: {sortDirection}");
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException("Sort parameter format is invalid. Expected format is 'field,direction'.");
+                }
+            }
+
+            var totalCount = await query.CountAsync(cancellationToken);
+            var items = await query
+            <%_ relationships.forEach( relationship => {
+                if (relationship.relationshipType === 'many-to-one' || relationship.relationshipType === 'one-to-one') { _%>
+                .Include(<%= camelCasedEntityClass %> => <%= camelCasedEntityClass %>.<%= relationship.relationshipFieldNamePascalized %>)
+                <%_ } else if (relationship.relationshipType === 'many-to-many' && relationship.ownerSide) { _%>
+                .Include(<%= camelCasedEntityClass %> => <%= camelCasedEntityClass %>.<%= relationship.relationshipFieldNamePascalizedPlural %>)
+                <%_ }
+                }); _%>
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToListAsync(cancellationToken);
+
+            return new PaginatedResult<<%= pascalizedEntityClass %>>
+            {
+                Data = items,
+                TotalCount = totalCount
+            };
+        }
+    }
+}

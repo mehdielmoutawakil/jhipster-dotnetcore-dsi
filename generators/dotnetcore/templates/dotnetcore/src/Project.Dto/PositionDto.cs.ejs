@@ -1,0 +1,10 @@
+namespace <%= namespace %>.Dto;
+
+public class PositionDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public bool IsAdmin { get; set; }
+
+    public string[] Permissions { get; set; }
+}

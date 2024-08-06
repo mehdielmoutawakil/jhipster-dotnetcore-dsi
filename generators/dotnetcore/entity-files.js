@@ -45,6 +45,8 @@ export const entityFiles = {
         'Project.Application/Queries/_persistClass_/_persistClass_GetQueryHandler.cs',
         'Project.Application/Queries/_persistClass_/_persistClass_GetAllQuery.cs',
         'Project.Application/Queries/_persistClass_/_persistClass_GetAllQueryHandler.cs',
+        'Project.Application/Queries/_persistClass_/_persistClass_SearchQuery.cs',
+        'Project.Application/Queries/_persistClass_/_persistClass_SearchQueryHandler.cs',
         'Project.Application/Commands/_persistClass_/_persistClass_DeleteCommand.cs',
         'Project.Application/Commands/_persistClass_/_persistClass_DeleteCommandHandler.cs',
         'Project.Application/Commands/_persistClass_/_persistClass_CreateCommand.cs',

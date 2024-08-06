@@ -118,53 +118,6 @@ export const serverFiles = {
       ],
     },
   ],
-  serverHelpers: [
-    {
-      path: SERVER_SRC_DIR,
-      templates: [
-        {
-          file: 'Project/Helpers/SearchEntities/PaginationResult.cs',
-          renameTo: generator => `${generator.mainProjectDir}/Helpers/SearchEntities/PaginationResult.cs`,
-        },
-      ],
-    },
-    {
-      path: SERVER_SRC_DIR,
-      templates: [
-        {
-          file: 'Project/Helpers/SearchEntities/QueryableExtensions.cs',
-          renameTo: generator => `${generator.mainProjectDir}/Helpers/SearchEntities/QueryableExtensions.cs`,
-        },
-      ],
-    },
-    {
-      path: SERVER_SRC_DIR,
-      templates: [
-        {
-          file: 'Project/Helpers/SearchEntities/QueryParameterHelper.cs',
-          renameTo: generator => `${generator.mainProjectDir}/Helpers/SearchEntities/QueryParameterHelper.cs`,
-        },
-      ],
-    },
-    {
-      path: SERVER_SRC_DIR,
-      templates: [
-        {
-          file: 'Project/Helpers/SearchEntities/SearchEntitiesHandler.cs',
-          renameTo: generator => `${generator.mainProjectDir}/Helpers/SearchEntities/SearchEntitiesHandler.cs`,
-        },
-      ],
-    },
-    {
-      path: SERVER_SRC_DIR,
-      templates: [
-        {
-          file: 'Project/Helpers/SearchEntities/SearchEntityRequest.cs',
-          renameTo: generator => `${generator.mainProjectDir}/Helpers/SearchEntities/SearchEntityRequest.cs`,
-        },
-      ],
-    },
-  ],
   domainFiles: [
     {
       path: SERVER_SRC_DIR,
@@ -371,6 +324,16 @@ export const serverFiles = {
         {
           file: 'Project.Dto/PermissionDto.cs',
           renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_DTO_SUFFIX}/PermissionDto.cs`,
+        },
+      ],
+    },
+    {
+      condition: generator => generator.applicationType !== 'microservice',
+      path: SERVER_SRC_DIR,
+      templates: [
+        {
+          file: 'Project.Dto/PositionDto.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_DTO_SUFFIX}/PositionDto.cs`,
         },
       ],
     },
@@ -1038,6 +1001,15 @@ export const serverFiles = {
           renameTo: generator =>
             `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Queries/NavMenu/NavMenuGetTreeQueryHandler.cs`,
         },
+        {
+          file: 'Project.Application/Queries/Position/PositionSearchQuery.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Queries/Position/PositionSearchQuery.cs`,
+        },
+        {
+          file: 'Project.Application/Queries/Position/PositionSearchQueryHandler.cs',
+          renameTo: generator =>
+            `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Queries/Position/PositionSearchQueryHandler.cs`,
+        },
       ],
     },
     {
@@ -1110,6 +1082,16 @@ export const serverFiles = {
       path: SERVER_SRC_DIR,
       templates: [
         {
+          file: 'Project/Controllers/PositionController.cs',
+          renameTo: generator => `${generator.mainProjectDir}/Controllers/PositionController.cs`,
+        },
+      ],
+    },
+    {
+      condition: generator => generator.authenticationType === 'jwt' && generator.applicationType !== 'microservice',
+      path: SERVER_SRC_DIR,
+      templates: [
+        {
           file: 'Project/Controllers/PublicUsersController.cs',
           renameTo: generator => `${generator.mainProjectDir}/Controllers/PublicUsersController.cs`,
         },
@@ -1153,8 +1135,34 @@ export const serverFiles = {
           renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Queries/User/UserGetAllQueryHandler.cs`,
         },
         {
+          file: 'Project.Application/Queries/User/UserSearchQuery.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Queries/User/UserSearchQuery.cs`,
+        },
+        {
+          file: 'Project.Application/Queries/User/UserSearchQueryHandler.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Queries/User/UserSearchQueryHandler.cs`,
+        },
+        {
           file: 'Project.Application/Queries/User/UserGetQuery.cs',
           renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Queries/User/UserGetQuery.cs`,
+        },
+        {
+          file: 'Project.Application/Queries/QueriesHelpers/FilterHelper.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Queries/QueriesHelpers/FilterHelper.cs`,
+        },
+        {
+          file: 'Project.Application/Queries/QueriesHelpers/PaginationResult.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Queries/QueriesHelpers/PaginationResult.cs`,
+        },
+        {
+          file: 'Project.Application/Queries/QueriesHelpers/QueryableExtensions.cs',
+          renameTo: generator =>
+            `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Queries/QueriesHelpers/QueryableExtensions.cs`,
+        },
+        {
+          file: 'Project.Application/Queries/QueriesHelpers/QueryParameterHelper.cs',
+          renameTo: generator =>
+            `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Queries/QueriesHelpers/QueryParameterHelper.cs`,
         },
         {
           file: 'Project.Application/Queries/User/UserGetAllPublicUsersQuery.cs',

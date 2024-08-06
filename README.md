@@ -1,185 +1,30 @@
-# generator-jhipster-dotnetcore
+# Introduction 
+Jhipster dotnetcore code generator
 
-[![NPM version][npm-image]][npm-url]
-[![Documentation Status](https://readthedocs.org/projects/jhipsternet/badge/?version=latest)](https://jhipsternet.readthedocs.io/en/latest/?badge=latest)
-[![Generator Build Status][github-actions-generator-image]][github-actions-url]
-[![Integration JWT Build Status][github-actions-integ-jwt-image]][github-actions-url]
-[![Integration OAUTH Build Status][github-actions-integ-oauth-image]][github-actions-url]
-[![Dependency Status][daviddm-image]][daviddm-url]
-[![Sonar Cloud Quality Gate][sonar-gate-image]][sonar-url]
-[![Sonar Cloud Reliability Rate][sonar-reliability-image]][sonar-url]
-[![Sonar Cloud Security Rate][sonar-security-image]][sonar-url]
-[![Sonar Cloud Maintainability Rate][sonar-maintainability-image]][sonar-url]
-[![Sonar Cloud Duplicated Code][sonar-duplication-image]][sonar-url]
+# Getting Started
 
-> JHipster blueprint
+## 1. Installation process
 
-# Big Picture
+### Step 1: Set Up Your JHipster Development Environment
+Ensure you have JHipster installed globally: ` npm install -g yo generator-jhipster `
 
-JHipster is a well-known platform for generating modern application in java world.
-JHipster provides a blueprints system that allows to override the default behavior of the generator
+### Step 2: Clone jhipster dotnetcore custom generator repository
+` https://dsi-cs@dev.azure.com/dsi-cs/CodeGen/_git/Back-DotNetCore `
 
-JHipster.NET is a blueprint that overrides the back-end part, originally generated in spring boot, by back-end in asp.net core. For the front-end all the common language can be used (angular, react, vue.js).
+### Step 3: Link jhipster dotnetcore custom generator repository
+` npm link `
 
-In alpha version we also have the possibility to choose either [Blazor](https://github.com/jhipster/jhipster-dotnetcore/issues/165) or [Xamarin](https://github.com/jhipster/jhipster-dotnetcore/issues/488) for the front.
+### Step 4: Create new jhipster dotnetcore project
+jhipster --blueprints dotnetcore --skip-client --skip-checks
 
-This blueprint is an official blueprint of JHipster [official-blueprints](https://www.jhipster.tech/modules/official-blueprints/)
+### Step 5: Generate migration files 
+` add-migration InitialCreate `
 
-# Docs
+### Step 6: Update appsettings ConnextionStrings
+` "AppDbContext": "Data Source=.;Initial Catalog=jhipster;Integrated Security=True;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True;" `
 
-Documentation and information about `JHipster.NET` are available [here](https://jhipsternet.readthedocs.io/en/latest/)
+### Step 7: Install migrations
+` update-database `
 
-Full documentation and information about JHipster are available [here](https://www.jhipster.tech/)
-
-# Analysis of the sample project
-
-https://github.com/jhipster/jhipster-sample-app-dotnetcore
-
-[![Sonar Cloud Quality Gate][sonar-sample-gate-image]][sonar-sample-url]
-[![Sonar Cloud Coverage Rate][sonar-sample-coverage-image]][sonar-sample-coverage-url]
-[![Sonar Cloud Reliability Rate][sonar-sample-reliability-image]][sonar-sample-url]
-[![Sonar Cloud Security Rate][sonar-sample-security-image]][sonar-sample-url]
-[![Sonar Cloud Maintainability Rate][sonar-sample-maintainability-image]][sonar-sample-url]
-[![Sonar Cloud Duplicated Code][sonar-sample-duplication-image]][sonar-sample-url]
-
-# Introduction
-
-This is a [JHipster](https://www.jhipster.tech/) blueprint, that is meant to be used in a JHipster application.
-
-# Gitter
-
-https://gitter.im/JHipster-NET/jhipster-dotnetcore
-
-# Installation
-
-## With NPM
-
-To install this blueprint:
-
-```bash
-npm install -g generator-jhipster-dotnetcore
-```
-
-To update this blueprint:
-
-```bash
-npm update -g generator-jhipster-dotnetcore
-```
-
-## With Yarn
-
-To install this blueprint:
-
-```bash
-yarn global add generator-jhipster-dotnetcore
-```
-
-To update this blueprint:
-
-```bash
-yarn global upgrade generator-jhipster-dotnetcore
-```
-
-# Usage
-
-To use this blueprint, run the below command
-
-```bash
-jhipster-dotnetcore
-```
-
-## Using Docker
-
-Build the Docker images:
-
-```bash
-docker build -t jhipster-generator-dotnetcore:latest .
-```
-
-Make a folder where you want to generate the Service:
-
-```bash
-mkdir service
-cd service
-```
-
-Run the generator from image to generate service:
-
-```bash
-docker run -it --rm -v $PWD:/home/jhipster/app jhipster-generator-dotnetcore
-```
-
-## 🚦 What we have now
-
-✅ General App generation
-
-- `jhipster-dotnetcore`
-  - JWT : ✅
-  - Oauth2 : ✅
-
-✅ Entity generation
-
-- `jhipster-dotnetcore <entity-name>`
-
-✅ JDL Entity model support generation
-
-- `jhipster-dotnetcore import-jdl my_file.jdl`
-
-## Running the generated app in a Docker container
-
-1. Build the Docker image of the app
-
-```bash
-docker build -f "[Dockerfile path]" -t [An image name]:[A tag] "[Application root path]"
-```
-
-2. Run your image in a Docker container
-
-```bash
-docker run -d -p [A host port]:8080 [Image name]:[Image tag]
-```
-
-3. Open your favorite browser at `localhost:[Chosen host port]` and enjoy ! :whale:
-
-Docker compose file can be used to start the application with database as a service. To build images, run
-
-```bash
-docker compose -f docker/app.yml build
-```
-
-To start services, use
-
-```bash
-docker compose -f docker/app.yml up
-```
-
-In case of Oracle database, see [official documentation](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/README.md)
-
-# License
-
-Apache-2.0 © [JHipster.NET]()
-
-[npm-image]: https://img.shields.io/npm/v/generator-jhipster-dotnetcore.svg
-[npm-url]: https://npmjs.org/package/generator-jhipster-dotnetcore
-[daviddm-image]: https://david-dm.org/jhipster/jhipster-dotnetcore.svg?theme=shields.io
-[daviddm-url]: https://david-dm.org/jhipster/jhipster-dotnetcore
-[github-actions-generator-image]: https://github.com/jhipster/jhipster-dotnetcore/workflows/Generator/badge.svg?branch=main
-[github-actions-integ-oauth-image]: https://github.com/jhipster/jhipster-dotnetcore/workflows/Test%20Integration%20OAUTH/badge.svg?branch=main
-[github-actions-integ-jwt-image]: https://github.com/jhipster/jhipster-dotnetcore/workflows/Test%20Integration%20JWT/badge.svg?branch=main
-[github-actions-url]: https://github.com/jhipster/jhipster-dotnetcore/actions
-[sonar-url]: https://sonarcloud.io/dashboard?branch=main&id=jhipster_jhipster-dotnetcore
-[sonar-coverage-url]: https://sonarcloud.io/component_measures?branch=main&id=jhipster_jhipster-dotnetcore&metric=coverage&view=list
-[sonar-gate-image]: https://sonarcloud.io/api/project_badges/measure?branch=main&project=jhipster_jhipster-dotnetcore&metric=alert_status
-[sonar-coverage-image]: https://sonarcloud.io/api/project_badges/measure?branch=main&project=jhipster_jhipster-dotnetcore&metric=coverage
-[sonar-reliability-image]: https://sonarcloud.io/api/project_badges/measure?branch=main&project=jhipster_jhipster-dotnetcore&metric=reliability_rating
-[sonar-security-image]: https://sonarcloud.io/api/project_badges/measure?branch=main&project=jhipster_jhipster-dotnetcore&metric=security_rating
-[sonar-maintainability-image]: https://sonarcloud.io/api/project_badges/measure?branch=main&project=jhipster_jhipster-dotnetcore&metric=sqale_rating
-[sonar-duplication-image]: https://sonarcloud.io/api/project_badges/measure?branch=main&project=jhipster_jhipster-dotnetcore&metric=duplicated_lines_density
-[sonar-sample-url]: https://sonarcloud.io/dashboard?branch=main&id=jhipster_jhipster-sample-app-dotnetcore
-[sonar-sample-coverage-url]: https://sonarcloud.io/component_measures?branch=main&id=jhipster_jhipster-sample-app-dotnetcore&metric=coverage&view=list
-[sonar-sample-gate-image]: https://sonarcloud.io/api/project_badges/measure?branch=main&project=jhipster_jhipster-sample-app-dotnetcore&metric=alert_status
-[sonar-sample-coverage-image]: https://sonarcloud.io/api/project_badges/measure?branch=main&project=jhipster_jhipster-sample-app-dotnetcore&metric=coverage
-[sonar-sample-reliability-image]: https://sonarcloud.io/api/project_badges/measure?branch=main&project=jhipster_jhipster-sample-app-dotnetcore&metric=reliability_rating
-[sonar-sample-security-image]: https://sonarcloud.io/api/project_badges/measure?branch=main&project=jhipster_jhipster-sample-app-dotnetcore&metric=security_rating
-[sonar-sample-maintainability-image]: https://sonarcloud.io/api/project_badges/measure?branch=main&project=jhipster_jhipster-sample-app-dotnetcore&metric=sqale_rating
-[sonar-sample-duplication-image]: https://sonarcloud.io/api/project_badges/measure?branch=main&project=jhipster_jhipster-sample-app-dotnetcore&metric=duplicated_lines_density
+### Step8: import JDL file
+` jhipster import-jdl <jdlfilepath> `

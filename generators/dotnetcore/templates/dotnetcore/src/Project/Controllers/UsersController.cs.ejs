@@ -80,9 +80,7 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<User>> CreateUser([FromBody] AddUserDto userDto)
     {
         _log.LogDebug($"REST request to save User : {userDto}");
-        if (!string.IsNullOrEmpty(userDto.Id))
-            throw new BadRequestAlertException("A new user cannot already have an ID", "userManagement",
-                "idexists");
+        
         <%_ if (cqrsEnabled) { _%>
         var newUser = await _mediator.Send(new UserCreateCommand { UserDto = userDto });
         <%_ } else { _%>

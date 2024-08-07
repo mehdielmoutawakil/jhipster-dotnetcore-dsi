@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace <%= namespace %>.Application.Queries
 {
-    
+
     public static class FilterHelper
     {
         public static IQueryable<T> ApplyFilter<T>(IQueryable<T> query, SearchQuery filter)
@@ -119,6 +116,57 @@ namespace <%= namespace %>.Application.Queries
                 // Log detailed information for debugging
                 throw;
             }
+        }
+    }
+
+    public static class SortHelper
+    {
+        public static IQueryable<T> ApplySort<T>(IQueryable<T> query, string sort)
+        {
+
+            if (!string.IsNullOrWhiteSpace(sort))
+            {
+                var sortParams = sort.Split(',');
+                if (sortParams.Length == 2)
+                {
+                    var sortField = sortParams[0];
+                    var sortDirection = sortParams[1].ToLower();
+
+                    if (sortDirection == "asc")
+                    {
+                        query = query.OrderByDynamic(sortField, true);
+                    }
+                    else if (sortDirection == "desc")
+                    {
+                        query = query.OrderByDynamic(sortField, false);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Unsupported sort direction: {sortDirection}");
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException("Sort parameter format is invalid. Expected format is 'field,direction'.");
+                }
+            }
+
+            return query;
+        }
+    }
+
+    public static class PagingHelper
+    {
+        public static IQueryable<T> ApplyPaging<T>(IQueryable<T> query, int pageNumber = 1, int pageSize = 10)
+        {
+            if (pageNumber >= 1 && pageSize >= 1)
+            {
+                query = query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize);
+
+            }
+            return query;
         }
     }
 }

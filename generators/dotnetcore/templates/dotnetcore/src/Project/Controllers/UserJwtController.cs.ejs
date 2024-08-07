@@ -75,6 +75,14 @@ public class UserJwtController : ControllerBase
         };
         return Ok(new JwtToken(jwt)).WithHeaders(httpHeaders);
     }
+
+    [HttpPost("check-token")]
+    public async Task<ActionResult<UserDetailDto>> CheckToken()
+    {
+        var user = await _mediator.Send(new UserJwtCheckTokenCommand { });
+
+        return Ok(user);
+    }
 }
 
 public class JwtToken

@@ -1195,6 +1195,16 @@ export const serverFiles = {
           file: 'Project.Application/Commands/UserJwt/UserJwtAuthorizeCommand.cs',
           renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Commands/UserJwt/UserJwtAuthorizeCommand.cs`,
         },
+        {
+          file: 'Project.Application/Commands/UserJwt/UserJwtCheckTokenCommandHandler.cs',
+          renameTo: generator =>
+            `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Commands/UserJwt/UserJwtCheckTokenCommandHandler.cs`,
+        },
+        {
+          file: 'Project.Application/Commands/UserJwt/UserJwtCheckTokenCommand.cs',
+          renameTo: generator =>
+            `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Commands/UserJwt/UserJwtCheckTokenCommand.cs`,
+        },
       ],
     },
     {

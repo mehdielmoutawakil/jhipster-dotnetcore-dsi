@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using <%= namespace %>.Domain.Entities;
 using <%= namespace %>.Domain.Services;
+using <%= namespace %>.Dto;
 using <%= namespace %>.Infrastructure.Data;
 
 namespace <%= namespace %>.Application.Queries
@@ -33,14 +34,13 @@ namespace <%= namespace %>.Application.Queries
                 return await BuildAdminNavigationTree(navigation, null, user);
             } else
             {
-                var positionPermissions = user.Position.PositionPermissions
-                    .Select(pp => pp.Permission.Name).ToList();
+                var positionPermissions = user.Position.Permissions;
 
                 return await BuildNavigationTree(navigation, null, positionPermissions);
             }
         }
 
-        private async Task<List<NavMenu>> BuildAdminNavigationTree(List<NavMenu> navigation, long? parentId, User user)
+        private async Task<List<NavMenu>> BuildAdminNavigationTree(List<NavMenu> navigation, long? parentId, UserDetailDto user)
         {
             var children = new List<NavMenu>();
 

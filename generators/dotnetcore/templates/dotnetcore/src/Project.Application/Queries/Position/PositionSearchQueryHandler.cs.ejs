@@ -15,7 +15,6 @@ namespace <%= namespace %>.Application.Queries
     {
         private readonly ApplicationDatabaseContext _context;
 
-
         public PositionSearchQueryHandler(ApplicationDatabaseContext context)
         {
             _context = context;
@@ -24,20 +23,23 @@ namespace <%= namespace %>.Application.Queries
         public async Task<PaginatedResult<PositionDto>> Handle(PositionSearchQuery request, CancellationToken cancellationToken)
         {
             IQueryable<Position> query = _context.Positions.AsQueryable();
-
+        
             // Apply filters
             foreach (var filter in request.Filters)
             {
                 query = FilterHelper.ApplyFilter(query, filter);
             }
-            
+        
             // Apply sorting
             query = SortHelper.ApplySort(query, request.Sort);
-            
+        
             // Apply pagination
             query = PagingHelper.ApplyPaging(query, request.PageNumber, request.PageSize);
-            
+        
+            // Get total data
             var totalCount = await query.CountAsync(cancellationToken);
+        
+            // Get data
             var items = await query
                 .Select(p => new PositionDto
                 {
@@ -49,14 +51,13 @@ namespace <%= namespace %>.Application.Queries
                     .ToArray()
                 })
                 .ToListAsync(cancellationToken);
-            
+        
+            // Return result
             return new PaginatedResult<PositionDto>
             {
                 Data = items,
                 TotalCount = totalCount
             };
         }
-
-
     }
 }

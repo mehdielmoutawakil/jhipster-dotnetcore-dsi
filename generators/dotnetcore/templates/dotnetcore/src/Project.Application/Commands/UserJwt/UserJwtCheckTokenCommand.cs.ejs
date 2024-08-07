@@ -1,0 +1,9 @@
+using MediatR;
+using System.Security.Principal;
+using <%= namespace %>.Dto;
+using <%= namespace %>.Dto.Authentication;
+
+namespace <%= namespace %>.Application.Commands;
+
+public class UserJwtCheckTokenCommand : IRequest<UserDetailDto>
+{}

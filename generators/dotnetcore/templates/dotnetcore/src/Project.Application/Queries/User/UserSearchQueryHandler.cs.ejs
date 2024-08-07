@@ -24,20 +24,23 @@ namespace <%= namespace %>.Application.Queries
         public async Task<PaginatedResult<UserDetailDto>> Handle(UserSearchQuery request, CancellationToken cancellationToken)
         {
             IQueryable<User> query = _context.Users.AsQueryable();
-
+        
             // Apply filters
             foreach (var filter in request.Filters)
             {
                 query = FilterHelper.ApplyFilter(query, filter);
             }
-
+        
             // Apply sorting
             query = SortHelper.ApplySort(query, request.Sort);
-
+        
             // Apply pagination
             query = PagingHelper.ApplyPaging(query, request.PageNumber, request.PageSize);
-
+        
+            // Get total data
             var totalCount = await query.CountAsync(cancellationToken);
+        
+            // Get data
             var items = await query
                 .Select(u => new UserDetailDto
                 {
@@ -60,14 +63,13 @@ namespace <%= namespace %>.Application.Queries
                     }
                 })
                 .ToListAsync(cancellationToken);
-
+        
+            // Return result
             return new PaginatedResult<UserDetailDto>
             {
                 Data = items,
                 TotalCount = totalCount
             };
         }
-
-
     }
 }

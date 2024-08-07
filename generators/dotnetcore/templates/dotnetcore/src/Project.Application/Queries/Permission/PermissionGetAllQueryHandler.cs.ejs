@@ -24,6 +24,7 @@ namespace <%= namespace %>.Application.Queries
             return permissions
                 .Select(m => new PermissionDto
                 {
+                    Id = m.Id,
                     Name = m.Name,
                     Group = m.Group,
                 })

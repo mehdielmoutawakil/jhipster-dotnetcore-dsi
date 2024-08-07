@@ -367,26 +367,43 @@ public class UserService : IUserService
     }
     <%_ } _%>
 
-    public async Task<User> GetConnectedUser()
+    public async Task<UserDetailDto> GetConnectedUser()
     {
         var user = _httpContextAccessor.HttpContext?.User;
-
+    
         if (user == null || !user.Identity.IsAuthenticated)
         {
             // Handle the case where the user is not authenticated
             return null;
         }
-
+    
         // Extract user information from claims
         var userName = user.Identity.Name;
-
-        // Use Include to eagerly load the Position entity
-        User? currentUser = await _databaseContext.Users
-            .Include(u => u.Position)
-            .ThenInclude(p => p.PositionPermissions)
-            .ThenInclude(pp => pp.Permission)
-            .FirstOrDefaultAsync(u => u.Login == userName);
-
+    
+        UserDetailDto currentUser = await _databaseContext.Users
+                .Select(u => new UserDetailDto
+                {
+                    Id = u.Id,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Activated = u.Activated,
+                    Email = u.Email,
+                    CreatedBy = u.CreatedBy,
+                    LangKey = u.LangKey,
+                    Login = u.Login,
+                    Position = new PositionDto
+                    {
+                        Id = u.Position.Id,
+                        Name = u.Position.Name,
+                        IsAdmin = u.Position.IsAdmin,
+                        Permissions = u.Position.PositionPermissions
+                        .Select(pp => pp.Permission.Name)
+                        .ToArray()
+                    }
+                })
+                .FirstOrDefaultAsync(u => u.Login == userName);
+    
+    
         // Create and return the User object with Position included
         return currentUser;
     }

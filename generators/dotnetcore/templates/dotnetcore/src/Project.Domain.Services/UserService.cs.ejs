@@ -61,24 +61,33 @@ public class UserService : IUserService
         _databaseContext = databaseContext;
     }
 
-    public virtual async Task<User> CreateUser(User userToCreate)
+    public virtual async Task<User> CreateUser(AddUserDto userToCreate)
     {
+    
+        Guid uuid = Guid.NewGuid();
+    
+        var position = await _databaseContext.Positions
+                                .Include(p => p.PositionPermissions)
+                                .ThenInclude(pp => pp.Permission)
+                                .FirstOrDefaultAsync(p => p.Id == userToCreate.PositionId);
+    
+        if (position == null)
+            throw new ArgumentException("Invalid PositionId");
+    
         var user = new User
         {
-            UserName = userToCreate.Login.ToLower(),
+            Login = userToCreate.Login.ToLowerInvariant(),
             FirstName = userToCreate.FirstName,
             LastName = userToCreate.LastName,
-            Email = userToCreate.Email.ToLower(),
-            ImageUrl = userToCreate.ImageUrl,
-            LangKey = userToCreate.LangKey ?? Constants.DefaultLangKey,
-            PasswordHash = _userManager.PasswordHasher.HashPassword(null, RandomUtil.GeneratePassword()),
-            ResetKey = RandomUtil.GenerateResetKey(),
-            ResetDate = DateTime.Now,
-            Activated = true
+            Email = userToCreate.Email.ToLowerInvariant(),
+            PasswordHash = _passwordHasher.HashPassword(null, userToCreate.Password),
+            Activated = userToCreate.Activated,
+            LangKey = userToCreate.LangKey,
+            Position = position
         };
-        await _userManager.CreateAsync(user);
-        await CreateUserRoles(user, userToCreate.UserRoles?.Select(iur => iur.Role.Name).ToHashSet());
-        _log.LogDebug($"Created Information for User: {user}");
+    
+        var result = await _userManager.CreateAsync(user);
+    
         return user;
     }
 

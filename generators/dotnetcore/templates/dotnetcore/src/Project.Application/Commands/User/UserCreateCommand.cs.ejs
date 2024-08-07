@@ -22,7 +22,8 @@ using <%= namespace %>.Dto;
 
 namespace <%= namespace %>.Application.Commands;
 
-public class UserCreateCommand : IRequest<User>
+public class UserCreateCommand : IRequest<UserDetailDto>
 {
-    public UserDto UserDto { get; set; }
+    public AddUserDto UserDto { get; set; }
+
 }

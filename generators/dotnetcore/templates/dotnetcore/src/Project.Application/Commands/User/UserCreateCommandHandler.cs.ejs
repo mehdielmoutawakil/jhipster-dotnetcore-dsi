@@ -17,17 +17,20 @@
  limitations under the License.
 -%>
 using AutoMapper;
-using <%= namespace %>.Domain.Entities;
-using <%= namespace %>.Domain.Services.Interfaces;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
+using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
+using <%= namespace %>.Domain.Entities;
+using <%= namespace %>.Domain.Services.Interfaces;
 using <%= namespace %>.Crosscutting.Exceptions;
+using <%= namespace %>.Dto;
 
 namespace <%= namespace %>.Application.Commands;
 
-public class UserCreateCommandHandler : IRequestHandler<UserCreateCommand, User>
+public class UserCreateCommandHandler : IRequestHandler<UserCreateCommand, UserDetailDto>
 {
     private readonly IMailService _mailService;
     private readonly UserManager<User> _userManager;
@@ -43,16 +46,44 @@ public class UserCreateCommandHandler : IRequestHandler<UserCreateCommand, User>
         _mapper = mapper;
     }
 
-    public async Task<User> Handle(UserCreateCommand command, CancellationToken cancellationToken)
+    public async Task<UserDetailDto> Handle(UserCreateCommand command, CancellationToken cancellationToken)
     {
+        if (command == null) throw new ArgumentNullException(nameof(command));
+        if (command.UserDto == null) throw new ArgumentNullException(nameof(command.UserDto));
+    
         // Lowercase the user login before comparing with database
         if (await _userManager.FindByNameAsync(command.UserDto.Login.ToLowerInvariant()) != null)
             throw new LoginAlreadyUsedException();
         if (await _userManager.FindByEmailAsync(command.UserDto.Email.ToLowerInvariant()) != null)
             throw new EmailAlreadyUsedException();
-
-        var newUser = await _userService.CreateUser(_mapper.Map<User>(command.UserDto));
+    
+        var newUser = await _userService.CreateUser(command.UserDto);
+        if (newUser == null) throw new Exception("User creation failed.");
+    
         await _mailService.SendCreationEmail(newUser);
-        return newUser;
+    
+        if (newUser.Position == null) throw new Exception("User position is null.");
+        if (newUser.Position.PositionPermissions == null) throw new Exception("PositionPermissions is null.");
+    
+        return new UserDetailDto
+        {
+            Id = newUser.Id,
+            FirstName = newUser.FirstName,
+            LastName = newUser.LastName,
+            Activated = newUser.Activated,
+            Email = newUser.Email,
+            CreatedBy = newUser.CreatedBy,
+            LangKey = newUser.LangKey,
+            Login = newUser.Login,
+            Position = new PositionDto
+            {
+                Id = newUser.Position.Id,
+                Name = newUser.Position.Name,
+                IsAdmin = newUser.Position.IsAdmin,
+                Permissions = newUser.Position.PositionPermissions
+                    .Select(pp => pp.Permission?.Name)
+                    .ToArray()
+            }
+        };
     }
 }

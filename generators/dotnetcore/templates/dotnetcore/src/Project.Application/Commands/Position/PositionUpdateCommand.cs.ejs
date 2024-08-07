@@ -1,0 +1,13 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this
+
+using MediatR;
+using <%= namespace %>.Dto;
+
+namespace <%= namespace %>.Application.Commands
+{
+    public class PositionUpdateCommand : IRequest<PositionDto>
+    {
+        public PositionDto positionDto { get; set; }
+    }
+}

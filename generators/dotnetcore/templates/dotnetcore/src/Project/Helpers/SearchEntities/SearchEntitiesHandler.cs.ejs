@@ -1,0 +1,192 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this
+
+using <%= namespace %>.Application.Queries;
+using <%= namespace %>.Dto;
+using <%= namespace %>.Infrastructure.Data;
+using MediatR;
+using System.Linq.Expressions;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Threading;
+using System;
+using Microsoft.EntityFrameworkCore;
+
+public class SearchQuery
+{
+    public string Field { get; set; }
+    public string Operator { get; set; }
+    public string Value { get; set; }
+}
+namespace <%= namespace %>.Helpers.SearchEntities
+{
+    public class SearchQueryHandler<TEntity> : IRequestHandler<SearchdQueryRequest<TEntity>, PaginatedResult<TEntity>> where TEntity : class
+    {
+        private readonly ApplicationDatabaseContext _context;
+
+        public SearchQueryHandler(ApplicationDatabaseContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<PaginatedResult<TEntity>> Handle(SearchdQueryRequest<TEntity> request, CancellationToken cancellationToken)
+        {
+            IQueryable<TEntity> query = _context.Set<TEntity>().AsQueryable();
+
+            // Apply filters
+            foreach (var filter in request.Filters)
+            {
+                query = ApplyFilter(query, filter);
+            }
+
+            // Apply sorting
+            if (!string.IsNullOrWhiteSpace(request.Sort))
+            {
+                var sortParams = request.Sort.Split(',');
+                if (sortParams.Length == 2)
+                {
+                    var sortField = sortParams[0];
+                    var sortDirection = sortParams[1].ToLower();
+
+                    if (sortDirection == "asc")
+                    {
+                        query = query.OrderByDynamic(sortField, true);
+                    }
+                    else if (sortDirection == "desc")
+                    {
+                        query = query.OrderByDynamic(sortField, false);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Unsupported sort direction: {sortDirection}");
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException("Sort parameter format is invalid. Expected format is 'field,direction'.");
+                }
+            }
+
+            var totalCount = await query.CountAsync(cancellationToken);
+            var items = await query
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToListAsync(cancellationToken);
+
+            return new PaginatedResult<TEntity>
+            {
+                Data = items,
+                TotalCount = totalCount
+            };
+        }
+
+        private IQueryable<TEntity> ApplyFilter(IQueryable<TEntity> query, SearchQuery filter)
+        {
+            try
+            {
+                var parameter = Expression.Parameter(typeof(TEntity), "e");
+                var property = Expression.Property(parameter, filter.Field);
+
+                // Determine the underlying type of the property (handling nullable types)
+                var propertyType = property.Type;
+                var underlyingType = Nullable.GetUnderlyingType(propertyType) ?? propertyType;
+
+                // Convert the filter value to the appropriate type
+                object convertedValue;
+                try
+                {
+                    convertedValue = Convert.ChangeType(filter.Value, underlyingType);
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException($"Error converting filter value to type {underlyingType}", ex);
+                }
+
+                // Create a comparison expression based on the operator
+                Expression comparison;
+                var constant = Expression.Constant(convertedValue, underlyingType);
+
+                if (property.Type.IsGenericType && property.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    var hasValue = Expression.Property(property, "HasValue");
+                    var value = Expression.Property(property, "Value");
+
+                    switch (filter.Operator.ToLower())
+                    {
+                        case "eq":
+                            comparison = Expression.AndAlso(hasValue, Expression.Equal(value, constant));
+                            break;
+                        case "gt":
+                            comparison = Expression.AndAlso(hasValue, Expression.GreaterThan(value, constant));
+                            break;
+                        case "gte":
+                            comparison = Expression.AndAlso(hasValue, Expression.GreaterThanOrEqual(value, constant));
+                            break;
+                        case "lt":
+                            comparison = Expression.AndAlso(hasValue, Expression.LessThan(value, constant));
+                            break;
+                        case "lte":
+                            comparison = Expression.AndAlso(hasValue, Expression.LessThanOrEqual(value, constant));
+                            break;
+                        case "in":
+                            if (underlyingType == typeof(string))
+                            {
+                                comparison = Expression.Call(value, typeof(string).GetMethod("Contains", new[] { typeof(string) }), constant);
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException("Operator 'in' is only supported for string properties.");
+                            }
+                            break;
+
+                        default:
+                            throw new InvalidOperationException($"Unsupported operator: {filter.Operator}");
+                    }
+                }
+                else
+                {
+                    switch (filter.Operator.ToLower())
+                    {
+                        case "eq":
+                            comparison = Expression.Equal(property, constant);
+                            break;
+                        case "gt":
+                            comparison = Expression.GreaterThan(property, constant);
+                            break;
+                        case "gte":
+                            comparison = Expression.GreaterThanOrEqual(property, constant);
+                            break;
+                        case "lt":
+                            comparison = Expression.LessThan(property, constant);
+                            break;
+                        case "lte":
+                            comparison = Expression.LessThanOrEqual(property, constant);
+                            break;
+                        case "in":
+                            if (underlyingType == typeof(string))
+                            {
+                                comparison = Expression.Call(property, typeof(string).GetMethod("Contains", new[] { typeof(string) }), constant);
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException("Operator 'in' is only supported for string properties.");
+                            }
+                            break;
+
+                        default:
+                            throw new InvalidOperationException($"Unsupported operator: {filter.Operator}");
+                    }
+                }
+
+                var lambda = Expression.Lambda<Func<TEntity, bool>>(comparison, parameter);
+                return query.Where(lambda);
+            }
+            catch (Exception ex)
+            {
+                // Log detailed information for debugging
+                throw;
+            }
+        }
+    }
+
+}

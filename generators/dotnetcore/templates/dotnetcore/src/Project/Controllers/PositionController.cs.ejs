@@ -7,7 +7,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using <%= namespace %>.Application.Queries;
 using <%= namespace %>.Domain.Entities;
-
+using <%= namespace %>.Application.Commands;
+using <%= namespace %>.Dto;
 namespace <%= namespace %>.Controllers
 {
     [Authorize]
@@ -24,6 +25,25 @@ namespace <%= namespace %>.Controllers
             _mediator = mediator;
         }
 
+        [HttpPost]
+        public async Task<ActionResult<PositionDto>> CreatePosition([FromBody] PositionDto positionDto)
+        {
+            _log.LogDebug($"REST request to save position : {positionDto}");
+          
+            var position = await _mediator.Send(new PositionCreateCommand { positionDto = positionDto });
+            return Ok(position);
+           
+        }
+
+        [HttpPut]
+        public async Task<ActionResult<PositionDto>> UpdaePosition([FromBody] PositionDto positionDto)
+        {
+            _log.LogDebug($"REST request to update position : {positionDto}");
+      
+            var position = await _mediator.Send(new PositionUpdateCommand { positionDto = positionDto });
+            return Ok(position);
+      
+        }
 
         [HttpGet("search")]
         public async Task<ActionResult<PaginatedResult<Position>>> Search([FromQuery] IDictionary<string, string> queryParameters)

@@ -1,0 +1,75 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this
+
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using <%= namespace %>.Domain.Entities;
+using <%= namespace %>.Dto;
+using <%= namespace %>.Infrastructure.Data;
+
+namespace <%= namespace %>.Application.Commands
+{
+    public class PositionUpdateCommandHandler : IRequestHandler<PositionUpdateCommand, PositionDto>
+    {
+        private readonly ApplicationDatabaseContext _context;
+        private readonly ILogger<PositionUpdateCommandHandler> _logger;
+
+        public PositionUpdateCommandHandler(ApplicationDatabaseContext context, ILogger<PositionUpdateCommandHandler> logger)
+        {
+            _context = context;
+            _logger = logger;
+        }
+
+        public async Task<PositionDto> Handle(PositionUpdateCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Retrieve the existing position entity from the database
+                var position = await _context.Positions.Include(p => p.PositionPermissions)
+                                                       .FirstOrDefaultAsync(p => p.Id == request.positionDto.Id, cancellationToken);
+                if (position == null)
+                {
+                    throw new ApplicationException("Position does not exist.");
+                }
+
+                // Update the existing entity's properties
+                position.IsAdmin = request.positionDto.IsAdmin;
+                position.Name = request.positionDto.Name;
+
+                // Remove old permissions
+                _context.PositionPermissions.RemoveRange(position.PositionPermissions);
+
+                // Add new permissions
+                foreach (var item in request.positionDto.Permissions)
+                {
+                    var positionPermission = new PositionPermission
+                    {
+                        PositionId = position.Id,
+                        PermissionId = int.Parse(item)
+                    };
+                    await _context.PositionPermissions.AddAsync(positionPermission, cancellationToken);
+                }
+
+                // Save changes to the database
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return new PositionDto
+                {
+                    IsAdmin = position.IsAdmin,
+                    Name = position.Name,
+                    Id = position.Id
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while updating the position.");
+                throw new ApplicationException("An error occurred while updating the position. Please try again later.", ex);
+            }
+        }
+    }
+}

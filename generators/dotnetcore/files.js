@@ -17,16 +17,16 @@
  * limitations under the License.
  */
 import {
-  SERVER_SRC_DIR,
-  SERVER_TEST_DIR,
-  PROJECT_DOMAIN_SUFFIX,
   PROJECT_APPLICATION_SUFFIX,
-  PROJECT_DTO_SUFFIX,
   PROJECT_CROSSCUTTING_SUFFIX,
+  PROJECT_DOMAIN_SUFFIX,
+  PROJECT_DTO_SUFFIX,
   PROJECT_INFRASTRUCTURE_SUFFIX,
   PROJECT_SERVICE_SUFFIX,
-  TERRAFORM_DIR,
   PROJECT_TEST_SUFFIX,
+  SERVER_SRC_DIR,
+  SERVER_TEST_DIR,
+  TERRAFORM_DIR,
 } from '../generator-dotnetcore-constants.js';
 
 export const serverFiles = {
@@ -1204,6 +1204,25 @@ export const serverFiles = {
           file: 'Project.Application/Commands/UserJwt/UserJwtCheckTokenCommand.cs',
           renameTo: generator =>
             `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Commands/UserJwt/UserJwtCheckTokenCommand.cs`,
+        },
+
+        {
+          file: 'Project.Application/Commands/Position/PositionCreateCommadHandler.cs',
+          renameTo: generator =>
+            `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Commands/Position/PositionCreateCommadHandler.cs`,
+        },
+        {
+          file: 'Project.Application/Commands/Position/PositionCreateCommand.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Commands/Position/PositionCreateCommand.cs`,
+        },
+        {
+          file: 'Project.Application/Commands/Position/PositionUpdateCommand.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Commands/Position/PositionUpdateCommand.cs`,
+        },
+        {
+          file: 'Project.Application/Commands/Position/PositionUpdateCommandHandler.cs',
+          renameTo: generator =>
+            `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Commands/Position/PositionUpdateCommandHandler.cs`,
         },
       ],
     },

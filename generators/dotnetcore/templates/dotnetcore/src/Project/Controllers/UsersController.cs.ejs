@@ -92,7 +92,7 @@ public class UsersController : ControllerBase
         var newUser = await _userService.CreateUser(_mapper.Map<User>(userDto));
         await _mailService.SendCreationEmail(newUser);
         <%_ } _%>
-        return CreatedAtAction(nameof(GetUser), new { login = newUser.Login }, newUser)
+        return CreatedAtAction(nameof(GetUser), new { id = newUser.Id }, newUser)
             .WithHeaders(HeaderUtil.CreateEntityCreationAlert("userManagement.created", newUser.Login));
     }
 

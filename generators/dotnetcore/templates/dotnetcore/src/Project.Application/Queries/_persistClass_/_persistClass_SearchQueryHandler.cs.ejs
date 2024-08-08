@@ -24,7 +24,7 @@ namespace <%= namespace %>.Application.Queries
 
         public async Task<PaginatedResult<<%= pascalizedEntityClass %>>> Handle(<%= pascalizedEntityClass %>SearchQuery request, CancellationToken cancellationToken)
         {
-            IQueryable<<%= pascalizedEntityClass %>> query =  _context.<%= pascalizedEntityClass %>.AsQueryable();
+            IQueryable<<%= pascalizedEntityClass %>> query =  _context.<%= pluralize(pascalizedEntityClass) %>.AsQueryable();
 
             // Apply filters
             foreach (var filter in request.Filters)

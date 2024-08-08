@@ -22,6 +22,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Microsoft.EntityFrameworkCore;
 using <%= namespace %>.Infrastructure.Data;
+using System.Linq;
 
 namespace <%= namespace %>.Configuration;
 
@@ -36,8 +37,6 @@ public static class IdentityConfiguration
 
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDatabaseContext>();
 
-            // SeedRoles(roleManager).Wait();
-            
             // Run permissions seeder
             SeedPermissions(dbContext).Wait();
 
@@ -46,24 +45,15 @@ public static class IdentityConfiguration
 
             // Run users seeder
             SeedUsers(userManager).Wait();
-
-
-            // SeedUserRoles(userManager).Wait();
         }
 
         return builder;
     }
 
-
-    private static IEnumerable<Role> Roles()
-    {
-        return new List<Role>
-        {
-            new Role {Id = "role_admin", Name = "ROLE_ADMIN"},
-            new Role {Id = "role_user",Name = "ROLE_USER"}
-        };
-    }
-
+    /// <summary>
+    /// Preparer users data
+    /// </summary>
+    /// <returns></returns>
     private static IEnumerable<User> Users()
     {
         return new List<User>
@@ -95,87 +85,82 @@ public static class IdentityConfiguration
         };
     }
 
+    /// <summary>
+    /// Preparer navigation menu data
+    /// </summary>
+    /// <returns></returns>
     private static IEnumerable<NavMenu> NavMenus()
     {
         return new List<NavMenu>
         {
             new NavMenu {Title = "Gestion", Type = "collapsable", Icon = "heroicons_outline:home", Link = "", Parent = null, ShouldHave = null},
             new NavMenu {Title = "Paramètrage", Type = "collapsable", Icon = "heroicons_outline:cog", Link = "", Parent = null, ShouldHave = null},
-
             new NavMenu {Title = "Roles & permissions", Type = "basic", Icon = "heroicons_outline:lock-closed", Link = "Position", Parent = new NavMenu {Title = "Paramètrage"}, ShouldHave = ["Position.Read"]},
-
             new NavMenu {Title = "Utilisateurs", Type = "basic", Icon = "heroicons_outline:users", Link = "User", Parent = new NavMenu {Title = "Paramètrage"}, ShouldHave = ["User.Read"]},
         };
     }
 
-    private static IEnumerable<Permission> Permissions()
+    /// <summary>
+    /// Preparer permissions data
+    /// </summary>
+    /// <returns></returns>
+    private static IEnumerable<Permission> Permissions(ApplicationDatabaseContext databaseContext)
     {
-        return new List<Permission>
+        // Define the possible actions
+        var actions = new[] { "Read", "Write", "Delete" };
+
+        // List of entity names to exclude from permission generation
+        var excludedEntities = new[] {
+            nameof(Role),
+            nameof(UserRole),
+            nameof(IdentityUserClaim<string>),
+            nameof(IdentityUserLogin<string>),
+            nameof(IdentityRoleClaim<string>),
+            nameof(IdentityUserToken<string>),
+            nameof(NavMenu),
+            nameof(Permission),
+            nameof(PositionPermission),
+            "IdentityUserToken`1",
+            "IdentityUserLogin`1",
+            "IdentityUserClaim`1",
+            "IdentityRoleClaim`1"
+        };
+
+        // Get all entity types in the model
+        var entityTypes = databaseContext.Model.GetEntityTypes()
+            .Select(e => e.ClrType.Name)
+            .Where(name => !excludedEntities.Contains(name)) // Exclude specified entities
+            .ToList();
+
+        // Retrieve existing permissions from the database (in a real migration, this step is illustrative)
+
+        var existingPermissions = databaseContext.Permissions.ToList();
+
+        // Generate permissions
+        return entityTypes
+            .SelectMany(entity => actions, (entity, action) => new Permission
             {
-                new Permission {Name = "User.Read",  Group="Users"},
-                new Permission {Name = "User.Write", Group="Users"},
-                new Permission {Name = "User.Delete", Group="Users"},
-                    
-                new Permission {Name = "Position.Read", Group="Positions"},
-                new Permission {Name = "Position.Write", Group="Positions"},
-                new Permission {Name = "Position.Delete", Group="Positions"},
-            };
+                Group = entity,
+                Name = $"{entity}.{action}"
+            })
+            .Where(p => !existingPermissions.Any(ep => ep.Name == p.Name && ep.Group == p.Group)) // Filter out existing permissions
+            .ToArray();
     }
     
-
-    private static IDictionary<string, string[]> UserRoles()
-    {
-        return new Dictionary<string, string[]>
-        {
-            { "user-0", new[] {"ROLE_ADMIN", "ROLE_USER"}},
-            { "user-2", new[] {"ROLE_ADMIN", "ROLE_USER"}},
-            { "user-3", new[] {"ROLE_USER"}}
-        };
-    }
-
-    private static async Task SeedRoles(RoleManager<Role> roleManager)
-    {
-        foreach (var role in Roles())
-        {
-            var dbRole = await roleManager.FindByNameAsync(role.Name);
-            if (dbRole == null)
-            {
-                try
-                {
-                    await roleManager.CreateAsync(role);
-                }
-                catch (Exception e)
-                {
-                    Log.ForContext(typeof(IdentityConfiguration)).Warning(e,
-                        "Tests are running in parallel, take care of database race conditions");
-
-                    await roleManager.CreateAsync(role);
-                }
-            }
-            else
-            {
-                await roleManager.UpdateAsync(dbRole);
-            }
-        }
-    }
-
+    /// <summary>
+    /// Launch permissions seed data
+    /// </summary>
+    /// <returns></returns>
     private static async Task SeedPermissions(ApplicationDatabaseContext databaseContext)
     {
-        foreach (var permission in Permissions())
-        {
-            var dbPermission = await databaseContext.Permissions.FirstOrDefaultAsync(p => p.Name == permission.Name);
-
-            if (dbPermission == null)
-            {
-                await databaseContext.Permissions.AddAsync(permission);
-            }
-            else
-            {
-                databaseContext.Permissions.Update(dbPermission);
-            }
-        }
+        await databaseContext.Permissions.AddRangeAsync(Permissions(databaseContext));
+        databaseContext.SaveChanges();
     }
 
+    /// <summary>
+    /// Launch navigation menu seed data
+    /// </summary>
+    /// <returns></returns>
     private static async Task SeedNavMenus(ApplicationDatabaseContext databaseContext)
     {
         foreach (NavMenu navmenu in NavMenus())
@@ -184,7 +169,6 @@ public static class IdentityConfiguration
             {
                 NavMenu dbNavMenu = await databaseContext.NavMenus.FirstOrDefaultAsync(nav => nav.Title == navmenu.Title);
                 NavMenu dbNavMenuParent = null;
-
 
                 if (navmenu.Parent != null)
                 {
@@ -210,7 +194,10 @@ public static class IdentityConfiguration
         }
     }
 
-
+    /// <summary>
+    /// Launch users seed data
+    /// </summary>
+    /// <returns></returns>
     private static async Task SeedUsers(UserManager<User> userManager)
     {
         foreach (var user in Users())
@@ -233,26 +220,6 @@ public static class IdentityConfiguration
             else
             {
                 await userManager.UpdateAsync(dbUser);
-            }
-        }
-    }
-
-    private static async Task SeedUserRoles(UserManager<User> userManager)
-    {
-        foreach (var (id, roles) in UserRoles())
-        {
-            try
-            {
-                var user = await userManager.FindByIdAsync(id);
-                await userManager.AddToRolesAsync(user, roles);
-            }
-            catch (Exception e)
-            {
-                Log.ForContext(typeof(IdentityConfiguration)).Warning(e,
-                    "Tests are running in parallel, take care of database race conditions");
-
-                var user = await userManager.FindByIdAsync(id);
-                await userManager.AddToRolesAsync(user, roles);
             }
         }
     }

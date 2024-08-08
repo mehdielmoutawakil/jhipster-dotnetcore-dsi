@@ -46,7 +46,7 @@ using Newtonsoft.Json;
 
 namespace <%= namespace %>.Domain.Entities
 {
-    [Table("<%= entityTableName %>")]
+    [Table("<%= pluralize(pascalizedEntityClass) %>")]
     public class <%= entityClassName %> : <%_ if (databaseType == 'mongodb') { %> MongoBaseEntity<<%= primaryKeyType %>> <%_ } else { %> BaseEntity<<%= primaryKeyType %>> <%_ } %>
     {
         <%_ for (idx in fields){

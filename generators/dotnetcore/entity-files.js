@@ -93,14 +93,6 @@ export const entityCommonFiles = {
       templates: ['Project/Configuration/AutoMapper/AutoMapperProfile_withEntities_.cs'],
     },
   ],
-  serverProgram: [
-    {
-      path: SERVER_SRC_DIR,
-      templates: [
-        { file: 'Project/Program_withEntities_.cs', renameTo: generator => `${generator.mainProjectDir}/Program_withEntities_.cs` },
-      ],
-    },
-  ],
   db: [
     {
       condition: generator => generator.databaseType !== 'mongodb',

@@ -28,7 +28,6 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using JHipsterNet.Core.Pagination;
-using  <%= namespace %>.Helpers.SearchEntities;
 using <%= namespace %>.Domain.Entities;
 <%_
 let hasEnumField = false;
@@ -251,33 +250,6 @@ namespace <%= namespace %>.Controllers
             <%_ }_%>
             <%_ } _%>
             return NoContent().WithHeaders(HeaderUtil.CreateEntityDeletionAlert(EntityName, id.ToString()));
-        }
-
-        [HttpGet("search")]
-        public async Task<ActionResult<PaginatedResult<<%= pascalizedEntityClass %>>>> GetFiltered<%= pascalizedEntityClass %>([FromQuery] IDictionary<string, string> queryParameters)
-        {
-            _log.LogDebug("REST request to get filtered <%= pascalizedEntityClass %>");
-
-            try
-            {
-                var (filters, pageNumber, pageSize, sort) = QueryParameterHelper.ProcessQueryParameters(queryParameters);
-
-                var query = new SearchdQueryRequest<<%= pascalizedEntityClass %>>
-                {
-                    Filters = filters,
-                    PageNumber = pageNumber,
-                    PageSize = pageSize,
-                    Sort = sort
-                };
-
-                var result = await _mediator.Send(query);
-
-                return Ok(result);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
         }
 
         [HttpGet("search")]

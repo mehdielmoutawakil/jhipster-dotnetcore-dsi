@@ -58,7 +58,12 @@ namespace <%= namespace %>.Infrastructure.Data
         {
             _httpContextAccessor = httpContextAccessor;
         }
-
+        
+    
+        public DbSet<NavMenu> NavMenus { get; set; }
+        public DbSet<Permission> Permissions { get; set; }
+        public DbSet<Position> Positions { get; set; }
+        public DbSet<PositionPermission> PositionPermissions { get; set; }
         <%_ entities.forEach(entity => {
             if(entity.name.toUpperCase() !== entityClass.toUpperCase()) { _%>
         public DbSet<<%= entity.name %>> <%= pluralize(entity.name) %> { get; set; }

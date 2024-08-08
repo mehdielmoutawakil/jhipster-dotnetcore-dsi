@@ -148,12 +148,12 @@ public class UsersController : ControllerBase
     }
     <%_ } _%>
 
-    [HttpGet("{login}")]
-    public async Task<IActionResult> GetUser([FromRoute] string login)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetUser([FromRoute] string id)
     {
-        _log.LogDebug($"REST request to get User : {login}");
+        _log.LogDebug($"REST request to get User : {id}");
         <%_ if (cqrsEnabled) { _%>
-        var userDto = await _mediator.Send(new UserGetQuery { Login = login });
+        var userDto = await _mediator.Send(new UserGetQuery { Id = id });
         <%_ } else { _%>
         var result = await _userService.GetByLogin(login);
         var userDto = _mapper.Map<UserDto>(result);

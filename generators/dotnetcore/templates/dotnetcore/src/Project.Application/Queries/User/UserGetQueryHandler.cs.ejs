@@ -31,7 +31,7 @@ using MongoDB.Driver.Linq;
 
 namespace <%= namespace %>.Application.Queries;
 
-public class UserGetQueryHandler : IRequestHandler<UserGetQuery, UserDto>
+public class UserGetQueryHandler : IRequestHandler<UserGetQuery, UserDetailDto>
 {
     private readonly UserManager<User> _userManager;
     private readonly IMapper _mapper;
@@ -42,19 +42,37 @@ public class UserGetQueryHandler : IRequestHandler<UserGetQuery, UserDto>
         _mapper = mapper;
     }
 
-    public async Task<UserDto> Handle(UserGetQuery request, CancellationToken cancellationToken)
+    public async Task<UserDetailDto> Handle(UserGetQuery request, CancellationToken cancellationToken)
     {
         <%_ if (databaseType === 'mongodb') { _%>
         var result = await (_userManager.Users as IMongoQueryable<User>)
             .Where(user => user.Login == request.Login)
             .SingleOrDefaultAsync(cancellationToken);
+            return _mapper.Map<UserDetailDto>(result);
         <%_ } else { _%>
-        var result = await _userManager.Users
-            .Where(user => user.Login == request.Login)
-            .Include(it => it.UserRoles)
-            .ThenInclude(r => r.Role)
-            .SingleOrDefaultAsync();
+            UserDetailDto currentUser = await _databaseContext.Users
+                .Select(u => new UserDetailDto
+                {
+                    Id = u.Id,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Activated = u.Activated,
+                    Email = u.Email,
+                    CreatedBy = u.CreatedBy,
+                    LangKey = u.LangKey,
+                    Login = u.Login,
+                    Position = new PositionDto
+                    {
+                        Id = u.Position.Id,
+                        Name = u.Position.Name,
+                        IsAdmin = u.Position.IsAdmin,
+                        Permissions = u.Position.PositionPermissions
+                        .Select(pp => pp.Permission.Name)
+                        .ToArray()
+                    }
+                })
+                .FirstOrDefaultAsync(u => u.Id == request.Id);
+                return currentUser;
         <%_ } _%>
-        return _mapper.Map<UserDto>(result);
     }
 }

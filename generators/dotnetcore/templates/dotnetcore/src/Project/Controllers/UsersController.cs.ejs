@@ -171,7 +171,7 @@ public class UsersController : ControllerBase
         <%_ } else { _%>
         await _userService.DeleteUser(id);
         <%_ } _%>
-        return NoContent().WithHeaders(HeaderUtil.CreateEntityDeletionAlert("userManagement.deleted", login));
+        return NoContent().WithHeaders(HeaderUtil.CreateEntityDeletionAlert("userManagement.deleted", id));
     }
 
     [HttpGet("search")]

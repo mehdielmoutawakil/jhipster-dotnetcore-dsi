@@ -161,15 +161,15 @@ public class UsersController : ControllerBase
         return ActionResultUtil.WrapOrNotFound(userDto);
     }
 
-    [HttpDelete("{login}")]
-    [Authorize(Roles = RolesConstants.ADMIN)]
-    public async Task<IActionResult> DeleteUser([FromRoute] string login)
+    [HttpDelete("{id}")]
+    [Authorize]
+    public async Task<IActionResult> DeleteUser([FromRoute] string id)
     {
-        _log.LogDebug($"REST request to delete User : {login}");
+        _log.LogDebug($"REST request to delete User : {id}");
         <%_ if (cqrsEnabled) { _%>
-        await _mediator.Send(new UserDeleteCommand { Login = login });
+        await _mediator.Send(new UserDeleteCommand { Id = id });
         <%_ } else { _%>
-        await _userService.DeleteUser(login);
+        await _userService.DeleteUser(id);
         <%_ } _%>
         return NoContent().WithHeaders(HeaderUtil.CreateEntityDeletionAlert("userManagement.deleted", login));
     }

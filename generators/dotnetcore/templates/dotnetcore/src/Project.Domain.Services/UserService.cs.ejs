@@ -289,9 +289,9 @@ public class UserService : IUserService
         return _roleManager.Roles.Select(it => it.Name).AsQueryable();
     }
 
-    public virtual async Task DeleteUser(string login)
+    public virtual async Task DeleteUser(string id)
     {
-        var user = await _userManager.FindByNameAsync(login);
+        var user = await _userManager.FindByIdAsync(id);
         if (user != null)
         {
         <%_ if (databaseType !== 'mongodb') { _%>

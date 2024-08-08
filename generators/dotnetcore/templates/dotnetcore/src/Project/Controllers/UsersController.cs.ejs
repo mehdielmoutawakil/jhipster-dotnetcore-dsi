@@ -97,7 +97,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpPut]
-    public async Task<IActionResult> UpdateUser([FromBody] UserDto userDto)
+    public async Task<IActionResult> UpdateUser([FromBody] UpdateUserDto userDto)
     {
         _log.LogDebug($"REST request to update User : {userDto}");
         <%_ if (cqrsEnabled) { _%>
@@ -115,10 +115,10 @@ public class UsersController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateUser(string id, [FromBody] UserDto userDto)
+     public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserDto userDto)
     {
-        return await UpdateUser(userDto);
-    }
+     return await UpdateUser(userDto);
+     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<User>>> GetAllUsers(IPageable pageable)

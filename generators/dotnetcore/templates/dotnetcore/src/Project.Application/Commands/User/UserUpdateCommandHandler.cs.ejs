@@ -47,6 +47,6 @@ public class UserUpdateCommandHandler : IRequestHandler<UserUpdateCommand, User>
         existingUser = await _userManager.FindByNameAsync(command.UserDto.Login);
         if (existingUser != null && !existingUser.Id.Equals(command.UserDto.Id)) throw new LoginAlreadyUsedException();
 
-        return await _userService.UpdateUser(_mapper.Map<User>(command.UserDto));
+        return await _userService.UpdateUser(command.UserDto);
     }
 }

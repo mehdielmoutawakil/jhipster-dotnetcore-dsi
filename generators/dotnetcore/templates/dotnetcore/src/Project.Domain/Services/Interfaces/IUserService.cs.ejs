@@ -31,7 +31,7 @@ public interface IUserService
     Task<User> GetByLogin(string login);
     IEnumerable<string> GetAuthorities();
     Task DeleteUser(string login);
-    Task<User> UpdateUser(User userToUpdate);
+    Task<User> UpdateUser(UpdateUserDto userToUpdate);
     Task<User> CompletePasswordReset(string newPassword, string key);
     Task<User> RequestPasswordReset(string mail);
     Task ChangePassword(string currentClearTextPassword, string newPassword);

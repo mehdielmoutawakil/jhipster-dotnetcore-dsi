@@ -137,22 +137,26 @@ public class UserService : IUserService
         <%_ } _%>
     }
 
-    public virtual async Task<User> UpdateUser(User userToUpdate)
-    {
-        //TODO use Optional
-        var user = await _userManager.FindByIdAsync(userToUpdate.Id);
-        user.Login = userToUpdate.Login.ToLower();
-        user.UserName = userToUpdate.Login.ToLower();
-        user.FirstName = userToUpdate.FirstName;
-        user.LastName = userToUpdate.LastName;
-        user.Email = userToUpdate.Email;
-        user.ImageUrl = userToUpdate.ImageUrl;
-        user.Activated = userToUpdate.Activated;
-        user.LangKey = userToUpdate.LangKey;
-        await _userManager.UpdateAsync(user);
-        await UpdateUserRoles(user, userToUpdate.UserRoles.Select(iur => iur.Role.Name).ToHashSet());
-        return user;
-    }
+    public virtual async Task<User> UpdateUser(UpdateUserDto userToUpdate)
+        {
+            //TODO use Optional
+            var user = await _userManager.FindByIdAsync(userToUpdate.Id);
+            user.Login = userToUpdate.Login.ToLower();
+            user.UserName = userToUpdate.Login.ToLower();
+            user.FirstName = userToUpdate.FirstName;
+            user.LastName = userToUpdate.LastName;
+            user.Email = userToUpdate.Email;
+            user.Activated = userToUpdate.Activated;
+            user.LangKey = userToUpdate.LangKey;
+            user.PositionId = userToUpdate.PositionId;
+            user.Position= await _databaseContext.Positions
+                                    .Include(p => p.PositionPermissions)
+                                    .ThenInclude(pp => pp.Permission)
+                                    .FirstOrDefaultAsync(p => p.Id == userToUpdate.PositionId);
+            await _userManager.UpdateAsync(user);
+        
+            return user;
+        }
 
     public virtual async Task<User> CompletePasswordReset(string newPassword, string key)
     {

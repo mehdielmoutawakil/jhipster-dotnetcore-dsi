@@ -28,7 +28,7 @@ using Microsoft.EntityFrameworkCore;
 <%_ if (databaseType === 'mongodb') { _%>
 using MongoDB.Driver.Linq;
 <%_ } _%>
-using Test5.Infrastructure.Data;
+using <%= namespace %>.Infrastructure.Data;
 
 namespace <%= namespace %>.Application.Queries;
 

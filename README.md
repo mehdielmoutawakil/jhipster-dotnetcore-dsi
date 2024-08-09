@@ -15,7 +15,7 @@ Ensure you have JHipster installed globally: ` npm install -g yo generator-jhips
 ` npm link `
 
 ### Step 4: Create new jhipster dotnetcore project
-jhipster --blueprints dotnetcore --skip-client --skip-checks
+` jhipster --blueprints dotnetcore --skip-client --skip-checks `
 
 ### Step 5: Generate migration files 
 ` add-migration InitialCreate `

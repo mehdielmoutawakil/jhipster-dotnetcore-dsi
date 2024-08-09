@@ -63,7 +63,7 @@ public static class IdentityConfiguration
                 Id = "user-0",
                 UserName = "admin",
                 PasswordHash = "$2y$10$cKmVx7svfQPPCpaQ3nKY.ekRottKEUjIDfRAe0rdFxYKks4qJHqlG",
-                FirstName = "",
+                FirstName = "admin",
                 LastName = "admin",
                 Email = "admin@localhost",
                 Activated = true,
@@ -89,15 +89,62 @@ public static class IdentityConfiguration
     /// Preparer navigation menu data
     /// </summary>
     /// <returns></returns>
-    private static IEnumerable<NavMenu> NavMenus()
+    private static async Task<IEnumerable<NavMenu>> NavMenusAsync(ApplicationDatabaseContext databaseContext)
     {
-        return new List<NavMenu>
+        List<NavMenu> navMenus = new List<NavMenu>
         {
-            new NavMenu {Title = "Gestion", Type = "collapsable", Icon = "heroicons_outline:home", Link = "", Parent = null, ShouldHave = null},
-            new NavMenu {Title = "Paramètrage", Type = "collapsable", Icon = "heroicons_outline:cog", Link = "", Parent = null, ShouldHave = null},
-            new NavMenu {Title = "Roles & permissions", Type = "basic", Icon = "heroicons_outline:lock-closed", Link = "Position", Parent = new NavMenu {Title = "Paramètrage"}, ShouldHave = ["Position.Read"]},
-            new NavMenu {Title = "Utilisateurs", Type = "basic", Icon = "heroicons_outline:users", Link = "User", Parent = new NavMenu {Title = "Paramètrage"}, ShouldHave = ["User.Read"]},
+            new NavMenu {Title = "Management", Type = "collapsable", Icon = "heroicons_outline:home", Link = "", Parent = null, ShouldHave = null},
+            new NavMenu {Title = "Settings", Type = "collapsable", Icon = "heroicons_outline:cog", Link = "", Parent = null, ShouldHave = null},
+            new NavMenu {Title = "Position", Type = "basic", Icon = "heroicons_outline:lock-closed", Link = "Position", Parent = new NavMenu {Title = "Settings"}, ShouldHave = ["Position.Read"]},
+            new NavMenu {Title = "User", Type = "basic", Icon = "heroicons_outline:users", Link = "User", Parent = new NavMenu {Title = "Settings"}, ShouldHave = ["User.Read"]},
         };
+        
+        // List of entity names to exclude from permission generation
+        var excludedEntities = new[] {
+            nameof(Role),
+            nameof(UserRole),
+            nameof(IdentityUserClaim<string>),
+            nameof(IdentityUserLogin<string>),
+            nameof(IdentityRoleClaim<string>),
+            nameof(IdentityUserToken<string>),
+            nameof(NavMenu),
+            nameof(Permission),
+            nameof(Position),
+            nameof(User),
+            nameof(PositionPermission),
+            "IdentityUserToken`1",
+            "IdentityUserLogin`1",
+            "IdentityUserClaim`1",
+            "IdentityRoleClaim`1"
+        };
+        
+        // Get all entity types in the model
+        var entityTypes = databaseContext.Model.GetEntityTypes()
+            .Select(e => e.ClrType.Name)
+            .Where(name => !excludedEntities.Contains(name)) // Exclude specified entities
+            .ToList();
+        
+        // Retrieve existing navmenus from the database
+        var existingNavMenus = await databaseContext.NavMenus.ToListAsync();
+        
+        // Add new nav menus based on entity types, excluding those already present
+        foreach (var entity in entityTypes)
+        {
+            if (!existingNavMenus.Any(nav => nav.Title == entity))
+            {
+                navMenus.Add(new NavMenu
+                {
+                    Title = entity,
+                    Type = "basic",
+                    Icon = "heroicons_outline:document",
+                    Link = entity,
+                    Parent = null,
+                    ShouldHave = [$"{entity}.Read"] // Example permission
+                });
+            }
+        }
+        
+        return navMenus;
     }
 
     /// <summary>
@@ -163,7 +210,7 @@ public static class IdentityConfiguration
     /// <returns></returns>
     private static async Task SeedNavMenus(ApplicationDatabaseContext databaseContext)
     {
-        foreach (NavMenu navmenu in NavMenus())
+        foreach (NavMenu navmenu in await NavMenusAsync(databaseContext))
         {
             try
             {

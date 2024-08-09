@@ -1,6 +1,6 @@
 {
   "name": "generator-dotnetcore-dsi",
-  "version": "1.0.0-dsi",
+  "version": "1.0.1-dsi",
   "description": "",
   "keywords": [
     "yeoman-generator",

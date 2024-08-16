@@ -1,13 +1,9 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this
-
-using System;
+﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
 
 namespace <%= namespace %>.Application.Queries
 {
-
     public static class FilterHelper
     {
         public static IQueryable<T> ApplyFilter<T>(IQueryable<T> query, SearchQuery filter)
@@ -41,71 +37,21 @@ namespace <%= namespace %>.Application.Queries
                     var hasValue = Expression.Property(property, "HasValue");
                     var value = Expression.Property(property, "Value");
 
-                    switch (filter.Operator.ToLower())
-                    {
-                        case "eq":
-                            comparison = Expression.AndAlso(hasValue, Expression.Equal(value, constant));
-                            break;
-                        case "gt":
-                            comparison = Expression.AndAlso(hasValue, Expression.GreaterThan(value, constant));
-                            break;
-                        case "gte":
-                            comparison = Expression.AndAlso(hasValue, Expression.GreaterThanOrEqual(value, constant));
-                            break;
-                        case "lt":
-                            comparison = Expression.AndAlso(hasValue, Expression.LessThan(value, constant));
-                            break;
-                        case "lte":
-                            comparison = Expression.AndAlso(hasValue, Expression.LessThanOrEqual(value, constant));
-                            break;
-                        case "in":
-                            if (underlyingType == typeof(string))
-                            {
-                                comparison = Expression.Call(value, typeof(string).GetMethod("Contains", new[] { typeof(string) }), constant);
-                            }
-                            else
-                            {
-                                throw new InvalidOperationException("Operator 'in' is only supported for string properties.");
-                            }
-                            break;
+                    comparison = CreateComparisonExpression(filter.Operator.ToLower(), value, constant, underlyingType);
 
-                        default:
-                            throw new InvalidOperationException($"Unsupported operator: {filter.Operator}");
+                    if (comparison != null)
+                    {
+                        comparison = Expression.AndAlso(hasValue, comparison);
                     }
                 }
                 else
                 {
-                    switch (filter.Operator.ToLower())
-                    {
-                        case "eq":
-                            comparison = Expression.Equal(property, constant);
-                            break;
-                        case "gt":
-                            comparison = Expression.GreaterThan(property, constant);
-                            break;
-                        case "gte":
-                            comparison = Expression.GreaterThanOrEqual(property, constant);
-                            break;
-                        case "lt":
-                            comparison = Expression.LessThan(property, constant);
-                            break;
-                        case "lte":
-                            comparison = Expression.LessThanOrEqual(property, constant);
-                            break;
-                        case "in":
-                            if (underlyingType == typeof(string))
-                            {
-                                comparison = Expression.Call(property, typeof(string).GetMethod("Contains", new[] { typeof(string) }), constant);
-                            }
-                            else
-                            {
-                                throw new InvalidOperationException("Operator 'in' is only supported for string properties.");
-                            }
-                            break;
+                    comparison = CreateComparisonExpression(filter.Operator.ToLower(), property, constant, underlyingType);
+                }
 
-                        default:
-                            throw new InvalidOperationException($"Unsupported operator: {filter.Operator}");
-                    }
+                if (comparison == null)
+                {
+                    throw new InvalidOperationException($"Unsupported operator: {filter.Operator}");
                 }
 
                 var lambda = Expression.Lambda<Func<T, bool>>(comparison, parameter);
@@ -117,13 +63,64 @@ namespace <%= namespace %>.Application.Queries
                 throw;
             }
         }
+
+        private static Expression CreateComparisonExpression(string op, Expression left, Expression right, Type underlyingType)
+        {
+            switch (op)
+            {
+                case "eq":
+                    return Expression.Equal(left, right);
+                case "neq":
+                    return Expression.NotEqual(left, right);
+                case "gt":
+                    return Expression.GreaterThan(left, right);
+                case "gte":
+                    return Expression.GreaterThanOrEqual(left, right);
+                case "lt":
+                    return Expression.LessThan(left, right);
+                case "lte":
+                    return Expression.LessThanOrEqual(left, right);
+                case "in":
+                    if (underlyingType == typeof(string))
+                    {
+                        return Expression.Call(left, typeof(string).GetMethod("Contains", new[] { typeof(string) }), right);
+                    }
+                    throw new InvalidOperationException("Operator 'in' is only supported for string properties.");
+                case "not in":
+                    if (underlyingType == typeof(string))
+                    {
+                        var containsExpression = Expression.Call(left, typeof(string).GetMethod("Contains", new[] { typeof(string) }), right);
+                        return Expression.Not(containsExpression);
+                    }
+                    throw new InvalidOperationException("Operator 'not in' is only supported for string properties.");
+                case "startswith":
+                    if (underlyingType == typeof(string))
+                    {
+                        return Expression.Call(left, typeof(string).GetMethod("StartsWith", new[] { typeof(string) }), right);
+                    }
+                    throw new InvalidOperationException("Operator 'startswith' is only supported for string properties.");
+                case "endswith":
+                    if (underlyingType == typeof(string))
+                    {
+                        return Expression.Call(left, typeof(string).GetMethod("EndsWith", new[] { typeof(string) }), right);
+                    }
+                    throw new InvalidOperationException("Operator 'endswith' is only supported for string properties.");
+                case "contains":
+                    if (underlyingType == typeof(string))
+                    {
+                        return Expression.Call(left, typeof(string).GetMethod("Contains", new[] { typeof(string) }), right);
+                    }
+                    throw new InvalidOperationException("Operator 'contains' is only supported for string properties.");
+                default:
+                    return null;
+            }
+        }
     }
 
     public static class SortHelper
     {
         public static IQueryable<T> ApplySort<T>(IQueryable<T> query, string sort)
         {
-
             if (!string.IsNullOrWhiteSpace(sort))
             {
                 var sortParams = sort.Split(',');
@@ -164,10 +161,8 @@ namespace <%= namespace %>.Application.Queries
                 query = query
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize);
-
             }
             return query;
         }
     }
 }
-

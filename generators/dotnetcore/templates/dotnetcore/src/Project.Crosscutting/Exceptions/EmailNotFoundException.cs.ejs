@@ -16,9 +16,16 @@ using <%= namespace %>.Crosscutting.Constants;
 
 namespace <%= namespace %>.Crosscutting.Exceptions;
 
+/// <summary>
+/// Exception for email not found.
+/// </summary>
 public class EmailNotFoundException : BaseException
 {
-    public EmailNotFoundException() : base(ErrorConstants.EmailNotFoundType, "Email address not registered")
+    /// <summary>
+    /// Initializes a new instance of the EmailNotFoundException class.
+    /// </summary>
+    public EmailNotFoundException() 
+        : base(ErrorConstants.EmailNotFoundType, "Email address not registered")
     {
     }
 }

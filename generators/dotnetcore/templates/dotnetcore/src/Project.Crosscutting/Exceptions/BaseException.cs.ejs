@@ -16,16 +16,37 @@ using System;
 
 namespace <%= namespace %>.Crosscutting.Exceptions;
 
+/// <summary>
+/// Base exception class.
+/// </summary>
 public abstract class BaseException : Exception
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BaseException"/> class.
+    /// </summary>
+    /// <param name="type">The type of the exception.</param>
+    /// <param name="detail">The detail of the exception.</param>
     public BaseException(string type, string detail) : this(type, detail, null, null)
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BaseException"/> class.
+    /// </summary>
+    /// <param name="type">The type of the exception.</param>
+    /// <param name="detail">The detail of the exception.</param>
+    /// <param name="entityName">The name of the entity related to the exception.</param>
     public BaseException(string type, string detail, string entityName) : this(type, detail, entityName, null)
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BaseException"/> class.
+    /// </summary>
+    /// <param name="type">The type of the exception.</param>
+    /// <param name="detail">The detail of the exception.</param>
+    /// <param name="entityName">The name of the entity related to the exception.</param>
+    /// <param name="errorKey">The error key.</param>
     public BaseException(string type, string detail, string entityName, string errorKey) : base(detail)
     {
         Type = type;
@@ -34,8 +55,23 @@ public abstract class BaseException : Exception
         ErrorKey = errorKey;
     }
 
+    /// <summary>
+    /// The type of the exception.
+    /// </summary>
     public string Type { get; set; }
+
+    /// <summary>
+    /// The detail of the exception.
+    /// </summary>
     public string Detail { get; set; }
+
+    /// <summary>
+    /// The name of the entity related to the exception.
+    /// </summary>
     public string EntityName { get; set; }
+
+    /// <summary>
+    /// The error key.
+    /// </summary>
     public string ErrorKey { get; set; }
 }

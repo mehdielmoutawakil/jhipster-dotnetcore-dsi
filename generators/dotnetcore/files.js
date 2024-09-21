@@ -402,6 +402,15 @@ export const serverFiles = {
       path: SERVER_SRC_DIR,
       templates: [
         {
+          file: 'Project.Domain/Repositories/Interfaces/IPositionRepository.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_DOMAIN_SUFFIX}/Repositories/Interfaces/IPositionRepository.cs`,
+        },
+      ],
+    },
+    {
+      path: SERVER_SRC_DIR,
+      templates: [
+        {
           file: 'Project.Domain/Repositories/Interfaces/INoSqlFluentRepository.cs',
           renameTo: generator =>
             `${generator.pascalizedBaseName}${PROJECT_DOMAIN_SUFFIX}/Repositories/Interfaces/INoSqlFluentRepository.cs`,
@@ -478,6 +487,15 @@ export const serverFiles = {
         {
           file: 'Project.Infrastructure/Data/Repositories/FluentRepository.cs',
           renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_INFRASTRUCTURE_SUFFIX}/Data/Repositories/FluentRepository.cs`,
+        },
+      ],
+    },
+    {
+      path: SERVER_SRC_DIR,
+      templates: [
+        {
+          file: 'Project.Infrastructure/Data/Repositories/PositionRepository.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_INFRASTRUCTURE_SUFFIX}/Data/Repositories/PositionRepository.cs`,
         },
       ],
     },
@@ -1169,6 +1187,10 @@ export const serverFiles = {
           renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Queries/User/UserGetAllPublicUsersQuery.cs`,
         },
         {
+          file: 'Project.Application/Utility/CommHelper.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Utility/CommHelper.cs`,
+        },
+        {
           file: 'Project.Application/Queries/User/UserGetAllPublicUsersQueryHandler.cs',
           renameTo: generator =>
             `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Queries/User/UserGetAllPublicUsersQueryHandler.cs`,
@@ -1207,9 +1229,9 @@ export const serverFiles = {
         },
 
         {
-          file: 'Project.Application/Commands/Position/PositionCreateCommadHandler.cs',
+          file: 'Project.Application/Commands/Position/PositionCreateCommandHandler.cs',
           renameTo: generator =>
-            `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Commands/Position/PositionCreateCommadHandler.cs`,
+            `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Commands/Position/PositionCreateCommandHandler.cs`,
         },
         {
           file: 'Project.Application/Commands/Position/PositionCreateCommand.cs',
@@ -1223,6 +1245,15 @@ export const serverFiles = {
           file: 'Project.Application/Commands/Position/PositionUpdateCommandHandler.cs',
           renameTo: generator =>
             `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Commands/Position/PositionUpdateCommandHandler.cs`,
+        },
+        {
+          file: 'Project.Application/Commands/Position/PositionDeleteCommand.cs',
+          renameTo: generator => `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Commands/Position/PositionDeleteCommand.cs`,
+        },
+        {
+          file: 'Project.Application/Commands/Position/PositionDeleteCommandHandler.cs',
+          renameTo: generator =>
+            `${generator.pascalizedBaseName}${PROJECT_APPLICATION_SUFFIX}/Commands/Position/PositionDeleteCommandHandler.cs`,
         },
       ],
     },
@@ -1253,6 +1284,16 @@ export const serverFiles = {
         {
           file: 'Project.Test/Controllers/UsersResourceIntTest.cs',
           renameTo: generator => `${generator.testProjectDir}/Controllers/UsersResourceIntTest.cs`,
+        },
+      ],
+    },
+    {
+      condition: generator => generator.authenticationType === 'jwt' && generator.applicationType !== 'microservice',
+      path: SERVER_TEST_DIR,
+      templates: [
+        {
+          file: 'Project.Test/Controllers/PositionControllerIntTest.cs',
+          renameTo: generator => `${generator.testProjectDir}/Controllers/PositionControllerIntTest.cs`,
         },
       ],
     },

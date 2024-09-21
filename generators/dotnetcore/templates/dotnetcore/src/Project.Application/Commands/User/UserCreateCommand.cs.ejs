@@ -22,8 +22,14 @@ using <%= namespace %>.Dto;
 
 namespace <%= namespace %>.Application.Commands;
 
+/// <summary>
+/// User create request
+/// </summary>
 public class UserCreateCommand : IRequest<UserDetailDto>
 {
+    /// <summary>
+    /// user create request body
+    /// </summary>
     public AddUserDto UserDto { get; set; }
 
 }

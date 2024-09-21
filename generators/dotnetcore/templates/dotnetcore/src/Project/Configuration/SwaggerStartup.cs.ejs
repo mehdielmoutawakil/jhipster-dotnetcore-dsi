@@ -20,8 +20,16 @@ using JHipsterNet.Web.Pagination.Swagger;
 
 namespace <%= namespace %>.Configuration;
 
+/// <summary>
+/// Swagger configuration.
+/// </summary>
 public static class SwaggerConfiguration
 {
+    /// <summary>
+    /// Adds Swagger to services.
+    /// </summary>
+    /// <param name="services">Service collection.</param>
+    /// <returns>Service collection with Swagger.</returns>
     public static IServiceCollection AddSwaggerModule(this IServiceCollection services)
     {
         services.AddSwaggerGen(c =>
@@ -33,6 +41,11 @@ public static class SwaggerConfiguration
         return services;
     }
 
+    /// <summary>
+    /// Enables Swagger middleware.
+    /// </summary>
+    /// <param name="app">Application builder.</param>
+    /// <returns>Application builder with Swagger.</returns>
     public static IApplicationBuilder UseApplicationSwagger(this IApplicationBuilder app)
     {
         app.UseSwagger(c =>

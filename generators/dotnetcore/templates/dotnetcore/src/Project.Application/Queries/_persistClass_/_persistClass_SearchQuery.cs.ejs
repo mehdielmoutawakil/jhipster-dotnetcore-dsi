@@ -21,22 +21,34 @@ let hasDto = dto === 'mapstruct';
 let hasService = service === 'serviceImpl';
 %>
 using MediatR;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using <%= namespace %>.Domain.Entities;
 using <%= namespace %>.Dto;
  
 namespace <%= namespace %>.Application.Queries
 {
- 
-    public class <%= pascalizedEntityClass %>SearchQuery : IRequest<PaginatedResult<<%= pascalizedEntityClass %>>>
+    /// <summary>
+    /// <%= pascalizedEntityClass %> Search request
+    /// </summary>
+    public class <%= pascalizedEntityClass %>SearchQuery : IRequest<PaginatedResult<<%= pascalizedEntityClass %>Dto>>
     {
+        /// <summary>
+        /// List of SearchQuery filters
+        /// </summary>
         public List<SearchQuery> Filters { get; set; }
+        
+        /// <summary>
+        /// Page Number
+        /// </summary>
         public int PageNumber { get; set; }
+        
+        /// <summary>
+        /// Page size
+        /// </summary>
         public int PageSize { get; set; }
+        
+        /// <summary>
+        /// Field to sort data with
+        /// </summary>
         public string Sort { get; set; }
     }
 }

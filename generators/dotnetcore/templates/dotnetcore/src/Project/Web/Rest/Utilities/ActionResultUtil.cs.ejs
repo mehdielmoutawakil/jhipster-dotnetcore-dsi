@@ -17,8 +17,18 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace <%= namespace %>.Web.Rest.Utilities;
 
+/// <summary>
+/// Utility class for working with ActionResults.
+/// </summary>
 public static class ActionResultUtil
 {
+    /// <summary>
+    /// Wraps a value as a DTO or returns a 404 Not Found result if the value is null.
+    /// </summary>
+    /// <typeparam name="TDtoType">Type of the DTO to map to.</typeparam>
+    /// <param name="value">Value to wrap or return a 404 for.</param>
+    /// <param name="mapper">AutoMapper instance to use for mapping.</param>
+    /// <returns>An OkObjectResult with the mapped DTO or a NotFoundResult.</returns>
     public static ActionResult WrapOrNotFoundAsDto<TDtoType>(object value, IMapper mapper)
     {
         if (value != null)
@@ -29,7 +39,11 @@ public static class ActionResultUtil
         return new NotFoundResult();
     }
 
-
+    /// <summary>
+    /// Wraps a value as an OkObjectResult or returns a 404 Not Found result if the value is null.
+    /// </summary>
+    /// <param name="value">Value to wrap or return a 404 for.</param>
+    /// <returns>An OkObjectResult with the value or a NotFoundResult.</returns>
     public static ActionResult WrapOrNotFound(object value)
     {
         return value != null ? (ActionResult)new OkObjectResult(value) : new NotFoundResult();

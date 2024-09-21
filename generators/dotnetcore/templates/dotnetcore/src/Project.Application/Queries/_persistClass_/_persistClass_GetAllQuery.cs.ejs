@@ -27,7 +27,13 @@ using MediatR;
 
 namespace <%= namespace %>.Application.Queries;
 
+/// <summary>
+/// <%= pascalizedEntityClass %> getAll request
+/// </summary>
 public class <%= pascalizedEntityClass %>GetAllQuery : IRequest<<%= hasDto ? "Page" : "IPage" %><<%= hasDto ? asDto(pascalizedEntityClass) : pascalizedEntityClass %>>>
 {
+    /// <summary>
+    /// <%= pascalizedEntityClass %> getAll request body
+    /// </summary>
     public IPageable Page { get; set; }
 }

@@ -21,10 +21,11 @@ using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Security.Principal;
+using <%= namespace %>.Dto;
 
 namespace <%= namespace %>.Application.Commands;
 
-public class UserJwtAuthorizeCommandHandler : IRequestHandler<UserJwtAuthorizeCommand, IPrincipal>
+public class UserJwtAuthorizeCommandHandler : IRequestHandler<UserJwtAuthorizeCommand, (IPrincipal, UserDto)>
 {
     private readonly IAuthenticationService _authenticationService;
 
@@ -33,7 +34,7 @@ public class UserJwtAuthorizeCommandHandler : IRequestHandler<UserJwtAuthorizeCo
         _authenticationService = authenticationService;
     }
 
-    public Task<IPrincipal> Handle(UserJwtAuthorizeCommand command, CancellationToken cancellationToken)
+    public Task<(IPrincipal, UserDto)> Handle(UserJwtAuthorizeCommand command, CancellationToken cancellationToken)
     {
         return _authenticationService.Authenticate(command.LoginDto.Username, command.LoginDto.Password);
     }

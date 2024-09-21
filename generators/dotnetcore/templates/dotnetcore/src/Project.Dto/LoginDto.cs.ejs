@@ -16,24 +16,41 @@ using System.ComponentModel.DataAnnotations;
 
 namespace <%= namespace %>.Dto.Authentication;
 
+/// <summary>
+/// Login data transfer object.
+/// </summary>
 public class LoginDto
 {
+    /// <summary>
+    /// The username.
+    /// </summary>
     [Required]
     [StringLength(50, MinimumLength = 1)]
     public string Username { get; set; }
 
+    /// <summary>
+    /// The password.
+    /// </summary>
     [Required]
     [StringLength(100, MinimumLength = 4)]
     public string Password { get; set; }
 
-    [Required] public bool RememberMe { get; set; }
+    /// <summary>
+    /// Remember me flag.
+    /// </summary>
+    [Required]
+    public bool RememberMe { get; set; }
 
+    /// <summary>
+    /// Returns a string representation of the login data.
+    /// </summary>
+    /// <returns>A string representation of the login data.</returns>
     public override string ToString()
     {
         return "LoginDto{" +
-               $"Username='{Username}'" +
-               $", Password='{Password}'" +
-               $", RememberMe='{RememberMe}'" +
-               "}";
+                $"Username='{Username}'" +
+                $", Password='{Password}'" +
+                $", RememberMe='{RememberMe}'" +
+                "}";
     }
 }

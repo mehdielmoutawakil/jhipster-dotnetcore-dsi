@@ -19,8 +19,17 @@ using Microsoft.AspNetCore.Http;
 
 namespace <%= namespace %>.Web.Extensions;
 
+/// <summary>
+/// Extensions for HttpRequest.
+/// </summary>
 public static class HttpRequestExtensions
 {
+    /// <summary>
+    /// Reads the request body as a string asynchronously.
+    /// </summary>
+    /// <param name="request">HttpRequest to read the body from.</param>
+    /// <param name="encoding">Encoding to use for reading the body. Defaults to UTF-8.</param>
+    /// <returns>The request body as a string.</returns>
     public static async Task<string> BodyAsStringAsync(this HttpRequest request, Encoding encoding = null)
     {
         if (encoding == null) encoding = Encoding.UTF8;

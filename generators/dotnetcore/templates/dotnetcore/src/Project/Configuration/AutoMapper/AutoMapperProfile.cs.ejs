@@ -24,8 +24,14 @@ using <%= namespace %>.Dto;
 
 namespace <%= namespace %>.Configuration.AutoMapper;
 
+/// <summary>
+/// AutoMapper profile configuration.
+/// </summary>
 public class AutoMapperProfile : Profile
 {
+    /// <summary>
+    /// Initializes AutoMapper mappings.
+    /// </summary>
     public AutoMapperProfile()
     {
         <%_ if (authenticationType === 'jwt') {

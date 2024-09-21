@@ -18,10 +18,20 @@ using System.Reflection;
 
 namespace <%= namespace %>.Infrastructure.Data.Extensions;
 
+/// <summary>
+/// Cache for property accessors.
+/// </summary>
+/// <typeparam name="T">Type of entities.</typeparam>
 public static class PropertyAccessorCache<T> where T : class
 {
+    /// <summary>
+    /// Cache of property accessors.
+    /// </summary>
     private static readonly IDictionary<string, LambdaExpression> _cache;
 
+    /// <summary>
+    /// Initializes the cache.
+    /// </summary>
     static PropertyAccessorCache()
     {
         var storage = new Dictionary<string, LambdaExpression>();
@@ -38,6 +48,11 @@ public static class PropertyAccessorCache<T> where T : class
         _cache = storage;
     }
 
+    /// <summary>
+    /// Gets a property accessor from the cache.
+    /// </summary>
+    /// <param name="propertyName">Name of property to access.</param>
+    /// <returns>Property accessor lambda expression.</returns>
     public static LambdaExpression Get(string propertyName)
     {
         return _cache.TryGetValue(propertyName, out LambdaExpression result) ? result : null;

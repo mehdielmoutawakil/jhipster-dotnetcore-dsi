@@ -20,21 +20,53 @@ using <%= namespace %>.Domain.Services.Interfaces;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
+using System;
+using System.Runtime.CompilerServices;
+using Serilog;
+using Application.Utility;
 
 namespace <%= namespace %>.Application.Commands;
 
+/// <summary>
+/// User delete request class handler
+/// </summary>
 public class UserDeleteCommandHandler : IRequestHandler<UserDeleteCommand, Unit>
 {
     private readonly IUserService _userService;
+    
+    /// <summary>
+    /// Variable used to get API method name, in async calls
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
 
+    /// <summary>
+    /// Parameterized constructor
+    /// </summary>
+    /// <param name="userService"></param>
     public UserDeleteCommandHandler(IUserService userService)
     {
         _userService = userService;
     }
 
+    /// <summary>
+    /// Handler method
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async Task<Unit> Handle(UserDeleteCommand request, CancellationToken cancellationToken)
     {
-        await _userService.DeleteUser(request.Id);
-        return Unit.Value;
+        try
+        {
+            await _userService.DeleteUser(request.Id);
+            return Unit.Value;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(CommHelper.LogError(typeof(UserDeleteCommandHandler), GetActualAsyncMethodName(), ex));
+            throw ex;
+        }
     }
 }

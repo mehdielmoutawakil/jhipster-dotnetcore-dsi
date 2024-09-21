@@ -36,11 +36,21 @@ using MongoDB.Driver.Linq;
 
 namespace <%= namespace %>.Application.Queries;
 
+/// <summary>
+/// User GetAll request class handler
+/// </summary>
 public class UserGetAllPublicUsersQueryHandler : IRequestHandler<UserGetAllPublicUsersQuery, (IHeaderDictionary, IEnumerable<UserDto>)>
 {
     private readonly UserManager<User> _userManager;
     private readonly IMapper _mapper;
 
+    /// <summary>
+    /// Parameterized constructor
+    /// </summary>
+    /// <param name="userManager"></param>
+    /// <param name="userService"></param>
+    /// <param name="mapper"></param>
+    /// <param name="mailService"></param>
     public UserGetAllPublicUsersQueryHandler(UserManager<User> userManager, IUserService userService,
         IMapper mapper, IMailService mailService)
     {
@@ -48,6 +58,12 @@ public class UserGetAllPublicUsersQueryHandler : IRequestHandler<UserGetAllPubli
         _mapper = mapper;
     }
 
+    /// <summary>
+    /// Handler method
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async Task<(IHeaderDictionary, IEnumerable<UserDto>)> Handle(UserGetAllPublicUsersQuery request, CancellationToken cancellationToken)
     {
         <%_ if (databaseType === 'mongodb') { _%>
@@ -56,7 +72,8 @@ public class UserGetAllPublicUsersQueryHandler : IRequestHandler<UserGetAllPubli
             .UsePageable(request.Page));
         <%_ } else { _%>
         var page = await _userManager.Users
-            .Where(it => it.Activated == true && !string.IsNullOrEmpty(it.Id))
+            .Where(it => it.Activated == true && !string.IsNullOrEmpty(it.Id.ToString()))
+            .AsNoTracking()
             .UsePageableAsync(request.Page);
         <%_ } _%>
         var userDtos = page.Content.Select(user => _mapper.Map<UserDto>(user));

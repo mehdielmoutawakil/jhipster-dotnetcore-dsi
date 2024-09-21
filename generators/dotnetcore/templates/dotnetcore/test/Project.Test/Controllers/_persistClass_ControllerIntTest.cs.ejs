@@ -169,6 +169,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using FluentAssertions;
 <%_ if (hasDateTimeTypeField(fields)) { _%>
 using FluentAssertions.Extensions;
@@ -208,7 +209,7 @@ namespace <%= namespace %>.Test.Controllers
         public <%= pascalizedEntityClassPlural %>ControllerIntTest()
         {
             _factory = new AppWebApplicationFactory<TestStartup>().WithMockUser();
-            _client = _factory.CreateClient();
+            _httpClient = _factory.CreateClient();
 
             _<%= camelCasedEntityClass %>Repository = _factory.GetRequiredService<I<%= pascalizedEntityClass %>Repository>();
 
@@ -232,14 +233,17 @@ namespace <%= namespace %>.Test.Controllers
         <%_ } else if (field.fieldType === 'String') { _%>
         private const <%= fieldType %> Default<%= field.fieldNamePascalized %> = <%- defaultValue(fieldType) %>;
         private const <%= fieldType %> Updated<%= field.fieldNamePascalized %> = <%- updatedValue(fieldType) %>;
-            <%_ } else { _%>
+        <%_ } else if (field.blobContentTypeText || field.blobContentTypeImage || field.blobContentTypeAny) { _%>
+        private const string Default<%= field.fieldNamePascalized %> = "defaultBlobcontent";
+        private const string Updated<%= field.fieldNamePascalized %> = "updatedBlobcontent";
+        <%_ } else { _%>
         private static readonly <%= fieldType %> Default<%= field.fieldNamePascalized %> = <%- defaultValue(fieldType) %>;
         private static readonly <%= fieldType %> Updated<%= field.fieldNamePascalized %> = <%- updatedValue(fieldType) %>;
             <%_ } _%>
 
         <%_ }); _%>
         private readonly AppWebApplicationFactory<TestStartup> _factory;
-        private readonly HttpClient _client;
+        private readonly HttpClient _httpClient;
         private readonly I<%= pascalizedEntityClass %>Repository _<%= camelCasedEntityClass %>Repository;
 
         private <%= pascalizedEntityClass %> _<%= camelCasedEntityClass %>;
@@ -279,9 +283,9 @@ namespace <%= namespace %>.Test.Controllers
             // Create the <%= pascalizedEntityClass %>
             <%_ if (hasDto) { _%>
             <%= asDto(pascalizedEntityClass) %> _<%= asDto(camelCasedEntityClass) %> = _mapper.Map<<%= asDto(pascalizedEntityClass) %>>(_<%= camelCasedEntityClass %>);
-            var response = await _client.PostAsync("/api/<%= kebabCasedEntityClassPlural %>", TestUtil.ToJsonContent(_<%= asDto(camelCasedEntityClass) %>));
+            var response = await _httpClient.PostAsync("api/<%= pascalizedEntityClassPlural %>", TestUtil.ToJsonContent(_<%= asDto(camelCasedEntityClass) %>));
             <%_ } else { _%>
-            var response = await _client.PostAsync("/api/<%= kebabCasedEntityClassPlural %>", TestUtil.ToJsonContent(_<%= camelCasedEntityClass %>));
+            var response = await _httpClient.PostAsync("api/<%= pascalizedEntityClassPlural %>", TestUtil.ToJsonContent(_<%= camelCasedEntityClass %>));
             <%_ } _%>
             response.StatusCode.Should().Be(HttpStatusCode.Created);
 
@@ -305,9 +309,9 @@ namespace <%= namespace %>.Test.Controllers
             // An entity with an existing ID cannot be created, so this API call must fail
             <%_ if (hasDto) { _%>
             <%= asDto(pascalizedEntityClass) %> _<%= asDto(camelCasedEntityClass) %> = _mapper.Map<<%= asDto(pascalizedEntityClass) %>>(_<%= camelCasedEntityClass %>);
-            var response = await _client.PostAsync("/api/<%= kebabCasedEntityClassPlural %>", TestUtil.ToJsonContent(_<%= asDto(camelCasedEntityClass) %>));
+            var response = await _httpClient.PostAsync("api/<%= pascalizedEntityClassPlural %>", TestUtil.ToJsonContent(_<%= asDto(camelCasedEntityClass) %>));
             <%_ } else { _%>
-            var response = await _client.PostAsync("/api/<%= kebabCasedEntityClassPlural %>", TestUtil.ToJsonContent(_<%= camelCasedEntityClass %>));
+            var response = await _httpClient.PostAsync("api/<%= pascalizedEntityClassPlural %>", TestUtil.ToJsonContent(_<%= camelCasedEntityClass %>));
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             <%_ } _%>
 
@@ -336,9 +340,9 @@ namespace <%= namespace %>.Test.Controllers
             // Create the <%= pascalizedEntityClass %>, which fails.
             <%_ if (hasDto) { _%>
             <%= asDto(pascalizedEntityClass) %> _<%= asDto(camelCasedEntityClass) %> = _mapper.Map<<%= asDto(pascalizedEntityClass) %>>(_<%= camelCasedEntityClass %>);
-            var response = await _client.PostAsync("/api/<%= kebabCasedEntityClassPlural %>", TestUtil.ToJsonContent(_<%= asDto(camelCasedEntityClass) %>));
+            var response = await _httpClient.PostAsync("api/<%= pascalizedEntityClassPlural %>", TestUtil.ToJsonContent(_<%= asDto(camelCasedEntityClass) %>));
             <%_ } else { _%>
-            var response = await _client.PostAsync("/api/<%= kebabCasedEntityClassPlural %>", TestUtil.ToJsonContent(_<%= camelCasedEntityClass %>));
+            var response = await _httpClient.PostAsync("api/<%= pascalizedEntityClassPlural %>", TestUtil.ToJsonContent(_<%= camelCasedEntityClass %>));
             <%_ } _%>
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -356,7 +360,7 @@ namespace <%= namespace %>.Test.Controllers
             await _<%= camelCasedEntityClass %>Repository.SaveChangesAsync();
 
             // Get all the <%= camelCasedEntityClass %>List
-            var response = await _client.GetAsync("/api/<%= kebabCasedEntityClassPlural %>?sort=id,desc");
+            var response = await _httpClient.GetAsync("api/<%= pascalizedEntityClassPlural %>?sort=id,desc");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             var json = JToken.Parse(await response.Content.ReadAsStringAsync());
@@ -375,7 +379,7 @@ namespace <%= namespace %>.Test.Controllers
             await _<%= camelCasedEntityClass %>Repository.SaveChangesAsync();
 
             // Get the <%= camelCasedEntityClass %>
-            var response = await _client.GetAsync($"/api/<%= kebabCasedEntityClassPlural %>/{_<%= camelCasedEntityClass %>.Id}");
+            var response = await _httpClient.GetAsync($"api/<%= pascalizedEntityClassPlural %>/{_<%= camelCasedEntityClass %>.Id}");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             var json = JToken.Parse(await response.Content.ReadAsStringAsync());
@@ -390,7 +394,7 @@ namespace <%= namespace %>.Test.Controllers
         public async Task GetNonExisting<%= pascalizedEntityClass %>()
         {
             var maxValue = <%- nonexistentPrimaryKey(primaryKeyType) %>;
-            var response = await _client.GetAsync("/api/<%= kebabCasedEntityClassPlural %>/" + maxValue);
+            var response = await _httpClient.GetAsync("api/<%= pascalizedEntityClassPlural %>/" + maxValue);
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -413,9 +417,9 @@ namespace <%= namespace %>.Test.Controllers
 
             <%_ if (hasDto) { _%>
             <%= asDto(pascalizedEntityClass) %> updated<%= asDto(pascalizedEntityClass) %> = _mapper.Map<<%= asDto(pascalizedEntityClass) %>>(updated<%= pascalizedEntityClass %>);
-            var response = await _client.PutAsync($"/api/<%= kebabCasedEntityClassPlural %>/{_<%= camelCasedEntityClass %>.Id}", TestUtil.ToJsonContent(updated<%= asDto(pascalizedEntityClass) %>));
+            var response = await _httpClient.PutAsync($"api/<%= pascalizedEntityClassPlural %>/{_<%= camelCasedEntityClass %>.Id}", TestUtil.ToJsonContent(updated<%= asDto(pascalizedEntityClass) %>));
             <%_ } else { _%>
-            var response = await _client.PutAsync($"/api/<%= kebabCasedEntityClassPlural %>/{_<%= camelCasedEntityClass %>.Id}", TestUtil.ToJsonContent(updated<%= pascalizedEntityClass %>));
+            var response = await _httpClient.PutAsync($"api/<%= pascalizedEntityClassPlural %>/{_<%= camelCasedEntityClass %>.Id}", TestUtil.ToJsonContent(updated<%= pascalizedEntityClass %>));
             <%_ } _%>
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -443,9 +447,9 @@ namespace <%= namespace %>.Test.Controllers
             // If the entity doesn't have an ID, it will throw BadRequestAlertException
             <%_ if (hasDto) { _%>
             <%= asDto(pascalizedEntityClass) %> _<%= asDto(camelCasedEntityClass) %> = _mapper.Map<<%= asDto(pascalizedEntityClass) %>>(_<%= camelCasedEntityClass %>);
-            var response = await _client.PutAsync("/api/<%= kebabCasedEntityClassPlural %>/1", TestUtil.ToJsonContent(_<%= asDto(camelCasedEntityClass) %>));
+            var response = await _httpClient.PutAsync("api/<%= pascalizedEntityClassPlural %>/1", TestUtil.ToJsonContent(_<%= asDto(camelCasedEntityClass) %>));
             <%_ } else { _%>
-            var response = await _client.PutAsync("/api/<%= kebabCasedEntityClassPlural %>/1", TestUtil.ToJsonContent(_<%= camelCasedEntityClass %>));
+            var response = await _httpClient.PutAsync("api/<%= pascalizedEntityClassPlural %>/1", TestUtil.ToJsonContent(_<%= camelCasedEntityClass %>));
             <%_ } _%>
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -462,7 +466,7 @@ namespace <%= namespace %>.Test.Controllers
             await _<%= camelCasedEntityClass %>Repository.SaveChangesAsync();
             var databaseSizeBeforeDelete = await _<%= camelCasedEntityClass %>Repository.CountAsync();
 
-            var response = await _client.DeleteAsync($"/api/<%= kebabCasedEntityClassPlural %>/{_<%= camelCasedEntityClass %>.Id}");
+            var response = await _httpClient.DeleteAsync($"api/<%= pascalizedEntityClassPlural %>/{_<%= camelCasedEntityClass %>.Id}");
             response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
             // Validate the database is empty
@@ -483,10 +487,140 @@ namespace <%= namespace %>.Test.Controllers
                 Id = <%= camelCasedEntityClass %>1.Id
             };
             <%= camelCasedEntityClass %>1.Should().Be(<%= camelCasedEntityClass %>2);
-            <%= camelCasedEntityClass %>2.Id = <% if (isNumericPrimaryKey(primaryKeyType)) { _%>2L<%_ } else { _%><%- updatedValue(primaryKeyType) %><%_ } _%>;
+            <%= camelCasedEntityClass %>2.Id = <% if (isNumericPrimaryKey(primaryKeyType)) { _%>2<%_ } else { _%><%- updatedValue(primaryKeyType) %><%_ } _%>;
             <%= camelCasedEntityClass %>1.Should().NotBe(<%= camelCasedEntityClass %>2);
-            <%= camelCasedEntityClass %>1.Id = <% if (isNumericPrimaryKey(primaryKeyType)) { _%>0L<%_ } else { _%>null<%_ } _%>;
+            <%= camelCasedEntityClass %>1.Id = <% if (isNumericPrimaryKey(primaryKeyType)) { _%>0<%_ } else { _%>null<%_ } _%>;
             <%= camelCasedEntityClass %>1.Should().NotBe(<%= camelCasedEntityClass %>2);
+        }
+
+        [Fact]
+        public async Task TestSimple<%= pascalizedEntityClass %>Search()
+        {
+            // Initialize the database with multiple <%= kebabCasedEntityClassPlural %>
+            <% for (let i = 1; i <= 3; i++) { _%>var <%= camelCasedEntityClass %><%= i %> = new <%= pascalizedEntityClass %>
+            {
+                <%_ fields.forEach(field => {
+                    if (field.id) return;
+                    switch (field.cSharpType) {
+                        case 'string?' :
+                        case 'string' : 
+                _%>
+                <%= field.fieldNamePascalized %> = "<%= field.fieldNamePascalized %>_<%= i %>",
+                <%_ break;
+                        case 'int' :
+                        case 'int?' :
+                _%>
+                <%= field.fieldNamePascalized %> = <%= i %>,
+                <%_ break;
+                    default: 
+                _%>
+                <%= field.fieldNamePascalized %> = Default<%= field.fieldNamePascalized %>, 
+                <%_ }}); _%>
+            };
+            await _<%= camelCasedEntityClass %>Repository.CreateOrUpdateAsync(<%= camelCasedEntityClass %><%= i %>);
+            <%}%>
+            await _<%= camelCasedEntityClass %>Repository.SaveChangesAsync();
+       
+            // Act - Perform a search with filters, sorting, and pagination
+            var searchParams = new Dictionary<string, string>
+            {
+                // { "sort", "title,asc" }, // Sort by title in ascending order
+                { "pageNumber", "1" },
+                { "pageSize", "10" },
+                // { "title:contains", "Second" }
+            };
+       
+            var response = await _httpClient.GetAsync("api/<%= pascalizedEntityClassPlural %>/search?" + await new FormUrlEncodedContent(searchParams).ReadAsStringAsync());
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            var json = JToken.Parse(await response.Content.ReadAsStringAsync());
+            
+            var data = json.SelectToken("$.data");
+
+            //Check the structure and count
+            data.Should().NotBeNull("The 'data' property should exist in the response.");
+            data.Should().BeOfType<JArray>("The 'data' property should be an array.");
+            data.Should().HaveCount(3, "The 'data' array should contain exactly 3 items.");
+           
+            json.SelectToken("$.totalCount").Value<int>().Should().Be(3, "The 'totalCount' should be 3.");
+        }
+        
+        [Fact]
+        public async Task Search<%= pascalizedEntityClass %>WithFilters()
+        {
+            // Initialize the database with multiple <%= kebabCasedEntityClassPlural %>
+            <% for (let i = 1; i <= 3; i++) { _%>var <%= camelCasedEntityClass %><%= i %> = new <%= pascalizedEntityClass %>
+            {
+                <%_ fields.forEach(field => {
+                    if (field.id) return;
+                    switch (field.cSharpType) {
+                        case 'string?' :
+                        case 'string' : 
+                _%>
+                <%= field.fieldNamePascalized %> = "<%= field.fieldNamePascalized %>_<%= i %>",
+                <%_ break;
+                        case 'int' :
+                        case 'int?' :
+                _%>
+                <%= field.fieldNamePascalized %> = <%= i %>,
+                <%_ break;
+                    default: 
+                _%>
+                <%= field.fieldNamePascalized %> = Default<%= field.fieldNamePascalized %>, 
+                <%_ }}); _%>
+            };
+            await _<%= camelCasedEntityClass %>Repository.CreateOrUpdateAsync(<%= camelCasedEntityClass %><%= i %>);
+            <%}%>
+            await _<%= camelCasedEntityClass %>Repository.SaveChangesAsync();
+       
+            // Act - Perform a search with filters, sorting, and pagination
+            var searchParams = new Dictionary<string, string>
+            {
+                // { "sort", "title,asc" }, // Sort by title in ascending order
+                { "pageNumber", "1" },
+                { "pageSize", "10" },
+                <%_ fields.forEach(field => {
+                    if (field.id) return;
+                    switch (field.cSharpType) {
+                        case 'string?' :
+                        case 'string' : 
+                _%>
+                { "<%= field.fieldNamePascalized %>:eq", "<%= field.fieldNamePascalized %>_2" },
+                <%_ break;
+                        case 'int' :
+                        case 'int?' :
+                _%>
+                { "<%= field.fieldNamePascalized %>:eq", "2" },
+                <%_ break;
+                    default: 
+                _%>
+                { "<%= field.fieldNamePascalized %>:eq", Default<%= field.fieldNamePascalized %>.ToString() }, 
+                <%_ }}); _%>
+            };
+       
+            var response = await _httpClient.GetAsync("api/<%= pascalizedEntityClassPlural %>/search?" + await new FormUrlEncodedContent(searchParams).ReadAsStringAsync());
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+       
+            var json = JToken.Parse(await response.Content.ReadAsStringAsync());
+
+            json.SelectToken("$.data").Count().Should().Be(1);
+            <%_ fields.forEach(field => {
+                if (field.id) return;
+                switch (field.cSharpType) {
+                    case 'string?' :
+                    case 'string' : 
+            _%>
+            json.SelectTokens("$.data[*].<%= field.fieldNameCamelCased %>").Should().Contain("<%= field.fieldNamePascalized %>_2");
+            json.SelectTokens("$.data[*].<%= field.fieldNameCamelCased %>").Should().NotContain("<%= field.fieldNamePascalized %>_1");
+            json.SelectTokens("$.data[*].<%= field.fieldNameCamelCased %>").Should().NotContain("<%= field.fieldNamePascalized %>_3");
+            <%_ break;
+                    case 'int' :
+                    case 'int?' :
+            _%>
+            json.SelectToken("$.data[*].<%= field.fieldNameCamelCased %>").Value<int>().Should().Be(2);
+            json.SelectToken("$.data[*].<%= field.fieldNameCamelCased %>").Value<int>().Should().NotBe(1);
+            json.SelectToken("$.data[*].<%= field.fieldNameCamelCased %>").Value<int>().Should().NotBe(3);
+            <%_ break; }}); _%>
         }
     }
 }

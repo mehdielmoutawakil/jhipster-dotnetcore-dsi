@@ -36,11 +36,21 @@ using MongoDB.Driver.Linq;
 
 namespace <%= namespace %>.Application.Queries;
 
+/// <summary>
+/// User GetAll request class handler
+/// </summary>
 public class UserGetAllQueryHandler : IRequestHandler<UserGetAllQuery, (IHeaderDictionary, IEnumerable<UserDto>)>
 {
     private readonly UserManager<User> _userManager;
     private readonly IMapper _mapper;
 
+    /// <summary>
+    /// Parameterized constructor
+    /// </summary>
+    /// <param name="userManager"></param>
+    /// <param name="userService"></param>
+    /// <param name="mapper"></param>
+    /// <param name="mailService"></param>
     public UserGetAllQueryHandler(UserManager<User> userManager, IUserService userService,
         IMapper mapper, IMailService mailService)
     {
@@ -48,6 +58,12 @@ public class UserGetAllQueryHandler : IRequestHandler<UserGetAllQuery, (IHeaderD
         _mapper = mapper;
     }
 
+    /// <summary>
+    /// Handler method
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async Task<(IHeaderDictionary, IEnumerable<UserDto>)> Handle(UserGetAllQuery request, CancellationToken cancellationToken)
     {
         <%_ if (databaseType === 'mongodb') { _%>
@@ -57,6 +73,7 @@ public class UserGetAllQueryHandler : IRequestHandler<UserGetAllQuery, (IHeaderD
         var page = await _userManager.Users
             .Include(it => it.UserRoles)
             .ThenInclude(r => r.Role)
+            .AsNoTracking()
             .UsePageableAsync(request.Page);
         <%_ } _%>
         var userDtos = page.Content.Select(user => _mapper.Map<UserDto>(user));

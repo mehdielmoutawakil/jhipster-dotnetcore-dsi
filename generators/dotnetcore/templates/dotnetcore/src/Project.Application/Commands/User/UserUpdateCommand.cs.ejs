@@ -22,7 +22,13 @@ using <%= namespace %>.Dto;
 
 namespace <%= namespace %>.Application.Commands;
 
+/// <summary>
+/// User update request
+/// </summary>
 public class UserUpdateCommand : IRequest<User>
 {
+        /// <summary>
+        /// User update request body
+        /// </summary>
         public UpdateUserDto UserDto { get; set; }
 }

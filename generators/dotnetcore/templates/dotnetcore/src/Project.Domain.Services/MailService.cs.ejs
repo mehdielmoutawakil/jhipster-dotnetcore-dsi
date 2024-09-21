@@ -19,34 +19,48 @@ using Microsoft.Extensions.Options;
 
 namespace <%= namespace %>.Domain.Services;
 
+/// <summary>
+/// Service for sending emails.
+/// </summary>
 public class MailService : IMailService
 {
+    /// <summary>
+    /// Initializes a new instance of the MailService class.
+    /// </summary>
     public MailService()
     {
     }
 
-    // private readonly SecuritySettings _securitySettings;
-
-    // public MailService(IOptions<SecuritySettings> securitySettings)
-    // {
-    //     _securitySettings = securitySettings.Value;
-    // }
-
+    /// <summary>
+    /// Sends a password reset email to a user.
+    /// </summary>
+    /// <param name="user">The user to send the email to.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public virtual Task SendPasswordResetMail(User user)
     {
-        //TODO send reset Email
+        //TODO: Implement sending reset email
         return Task.FromResult(Task.CompletedTask);
     }
 
+    /// <summary>
+    /// Sends an activation email to a user.
+    /// </summary>
+    /// <param name="user">The user to send the email to.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public virtual Task SendActivationEmail(User user)
     {
-        //TODO Activation Email
+        //TODO: Implement sending activation email
         return Task.FromResult(Task.CompletedTask);
     }
 
+    /// <summary>
+    /// Sends a creation email to a user.
+    /// </summary>
+    /// <param name="user">The user to send the email to.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public virtual Task SendCreationEmail(User user)
     {
-        //TODO Creation Email
+        //TODO: Implement sending creation email
         return Task.FromResult(Task.CompletedTask);
     }
 }

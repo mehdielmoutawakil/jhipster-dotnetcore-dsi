@@ -27,12 +27,12 @@ namespace <%= namespace %>.Infrastructure.Data;
 
 <%_ if (authenticationType === 'jwt' && applicationType !== 'microservice') { _%>
 public class ApplicationDatabaseContext : IdentityDbContext<
-    User, Role, string,
-    IdentityUserClaim<string>,
+    User, Role, int,
+    IdentityUserClaim<int>,
     UserRole,
-    IdentityUserLogin<string>,
-    IdentityRoleClaim<string>,
-    IdentityUserToken<string>
+    IdentityUserLogin<int>,
+    IdentityRoleClaim<int>,
+    IdentityUserToken<int>
 >
 {
 <%_ } else { _%>
@@ -56,14 +56,14 @@ public class ApplicationDatabaseContext : DbContext
         base.OnModelCreating(builder);
         <%_ if (authenticationType === 'jwt' && applicationType !== 'microservice') { _%>
 
-        // Rename AspNet default tables
-        builder.Entity<User>().ToTable("Users");
-        builder.Entity<Role>().ToTable("Roles");
-        builder.Entity<UserRole>().ToTable("UserRoles");
-        builder.Entity<IdentityUserClaim<string>>().ToTable("UserClaims");
-        builder.Entity<IdentityUserLogin<string>>().ToTable("UserLogins");
-        builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims");
-        builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens");
+            // Rename AspNet default tables
+       builder.Entity<User>().ToTable("Users");
+       builder.Entity<Role>().ToTable("Roles");
+       builder.Entity<UserRole>().ToTable("UserRoles");
+       builder.Entity<IdentityUserClaim<int>>().ToTable("UserClaims");
+       builder.Entity<IdentityUserLogin<int>>().ToTable("UserLogins");
+       builder.Entity<IdentityRoleClaim<int>>().ToTable("RoleClaims");
+       builder.Entity<IdentityUserToken<int>>().ToTable("UserTokens");
 
         builder.Entity<UserRole>(userRole =>
         {
@@ -100,7 +100,7 @@ public class ApplicationDatabaseContext : DbContext
           .Entries()
           .Where(e => e.Entity is IAuditedEntityBase && (
               e.State == EntityState.Added
-              || e.State == EntityState.Modified));
+              || e.State == EntityState.Modified || e.State == EntityState.Deleted));
 
         string modifiedOrCreatedBy = _httpContextAccessor?.HttpContext?.User?.Identity?.Name ?? "System";
 
@@ -108,16 +108,24 @@ public class ApplicationDatabaseContext : DbContext
         {
             if (entityEntry.State == EntityState.Added)
             {
-                ((IAuditedEntityBase)entityEntry.Entity).CreatedDate = DateTime.Now;
+                ((IAuditedEntityBase)entityEntry.Entity).CreatedAt = DateTime.Now;
                 ((IAuditedEntityBase)entityEntry.Entity).CreatedBy = modifiedOrCreatedBy;
+            }
+            else if (entityEntry.State == EntityState.Deleted)
+            {
+                ((IAuditedEntityBase)entityEntry.Entity).DeletedAt = DateTime.Now;
+                ((IAuditedEntityBase)entityEntry.Entity).DeletedBy = modifiedOrCreatedBy;
+
+                // update the entity state to not remove it
+                entityEntry.State = EntityState.Modified;
             }
             else
             {
-                Entry((IAuditedEntityBase)entityEntry.Entity).Property(p => p.CreatedDate).IsModified = false;
+                Entry((IAuditedEntityBase)entityEntry.Entity).Property(p => p.CreatedAt).IsModified = false;
                 Entry((IAuditedEntityBase)entityEntry.Entity).Property(p => p.CreatedBy).IsModified = false;
             }
-          ((IAuditedEntityBase)entityEntry.Entity).LastModifiedDate = DateTime.Now;
-            ((IAuditedEntityBase)entityEntry.Entity).LastModifiedBy = modifiedOrCreatedBy;
+        ((IAuditedEntityBase)entityEntry.Entity).UpdatedAt = DateTime.Now;
+            ((IAuditedEntityBase)entityEntry.Entity).UpdatedBy = modifiedOrCreatedBy;
         }
         return await base.SaveChangesAsync(cancellationToken);
     }

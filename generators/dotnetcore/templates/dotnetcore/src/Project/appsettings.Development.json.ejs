@@ -25,6 +25,15 @@
                     "theme": "Serilog.Sinks.SystemConsole.Themes.AnsiConsoleTheme::Code, Serilog.Sinks.Console",
                     "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {Level:u4} {ProcessId} --- [{ThreadId,3}] {LoggerName,-40} : {Message:lj}{NewLine}{Exception}"
                 }
+            },
+            {
+                "Name": "File",
+                "Args": {
+                    "path": "logs/log-.json",
+                    "rollingInterval": "Day",
+                    "formatter": "Serilog.Formatting.Json.JsonFormatter, Serilog",
+                    "restrictedToMinimumLevel": "Debug"
+                }
             }
         ]
     },
@@ -66,5 +75,11 @@
     }_%>
     "Security": {
         "EnforceHttps":  false,
+    },
+    "FileUploadSettings": {
+        "MaxFileSizeMB": 10
+    },
+    "ImageSettings": {
+        "BaseImagePath": "uploads"
     }
 }

@@ -6,8 +6,15 @@ using <%= namespace %>.Dto;
 
 namespace <%= namespace %>.Application.Commands
 {
+
+    /// <summary>
+    /// Position update request
+    /// </summary>
     public class PositionUpdateCommand : IRequest<PositionDto>
     {
+        /// <summary>
+        /// Position update request body
+        /// </summary>
         public PositionDto positionDto { get; set; }
     }
 }

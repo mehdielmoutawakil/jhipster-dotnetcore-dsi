@@ -1,0 +1,21 @@
+using MediatR;
+using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
+
+namespace <%= namespace %>.Application.Commands;
+
+/// <summary>
+/// <%= pascalizedEntityClass %> UploadFiles request
+/// </summary>
+public class <%= pascalizedEntityClass %>UploadFilesCommand : IRequest<List<string>>
+{
+    /// <summary>
+    /// <%= pascalizedEntityClass %> Id
+    /// </summary>
+    public <%= primaryKeyType %> Id { get; set; }
+
+    /// <summary>
+    /// List of files to upload
+    /// </summary>
+    public List<IFormFile> Files { get; set; }
+}

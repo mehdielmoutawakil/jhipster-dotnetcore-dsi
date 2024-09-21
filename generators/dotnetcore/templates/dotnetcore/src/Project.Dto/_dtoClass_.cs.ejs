@@ -41,7 +41,9 @@ using Newtonsoft.Json;
 
 namespace <%= namespace %>.Dto
 {
-
+    /// <summary>
+    /// Data transfer object for <%= pascalizedEntityClass %>.
+    /// </summary>
     public class <%= asDto(entityClassName) %>
     {
         <%_ for (reference of dtoReferences) { _%>
@@ -52,7 +54,7 @@ namespace <%= namespace %>.Dto
             <%_ } _%>
             <%_ if (field && field.id) { _%>
         public <%= getNullableResolvedPrimaryKeyType(field.cSharpType, required, databaseType) %> <%= reference.nameCapitalized %> { get; set; }
-            <%_ } else if (field && field.blobContentTypeText) { _%>
+            <%_ } else if (field && (field.blobContentTypeAny || field.blobContentTypeImage || field.blobContentTypeText)) { _%>
         public String <%= reference.nameCapitalized %> { get; set; }
             <%_ } else if (reference.collection && reference.relationship) { _%>
         public IList<<%= getNullableResolvedType(asDto(reference.relationship.otherEntity.entityNameCapitalized), true) %>> <%= reference.nameCapitalized %> { get; set; } = new List<<%= getNullableResolvedType(asDto(reference.relationship.otherEntity.entityNameCapitalized), required) %>>();

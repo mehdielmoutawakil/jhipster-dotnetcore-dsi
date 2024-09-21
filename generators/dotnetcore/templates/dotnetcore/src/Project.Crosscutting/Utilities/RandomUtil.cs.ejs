@@ -17,11 +17,25 @@ using System.Linq;
 
 namespace <%= namespace %>.Crosscutting.Utilities;
 
+/// <summary>
+/// Utility class for generating random strings.
+/// </summary>
 public class RandomUtil
 {
+    /// <summary>
+    /// Default character count for generated strings.
+    /// </summary>
     private const int DefCount = 20;
+
+    /// <summary>
+    /// Instance of the Random class for generating random numbers.
+    /// </summary>
     private static readonly Random random = new Random();
 
+    /// <summary>
+    /// Generates a random password.
+    /// </summary>
+    /// <returns>A random password string.</returns>
     public static string GeneratePassword()
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -29,6 +43,11 @@ public class RandomUtil
             .Select(s => s[random.Next(s.Length)]).ToArray());
     }
 
+    /// <summary>
+    /// Generates a random numeric string of a specified length.
+    /// </summary>
+    /// <param name="length">The length of the numeric string.</param>
+    /// <returns>A random numeric string.</returns>
     public static string RandomNumeric(int length)
     {
         const string chars = "0123456789";
@@ -36,11 +55,19 @@ public class RandomUtil
             .Select(s => s[random.Next(s.Length)]).ToArray());
     }
 
+    /// <summary>
+    /// Generates an activation key.
+    /// </summary>
+    /// <returns>An activation key string.</returns>
     public static string GenerateActivationKey()
     {
         return RandomNumeric(DefCount);
     }
 
+    /// <summary>
+    /// Generates a reset key.
+    /// </summary>
+    /// <returns>A reset key string.</returns>
     public static string GenerateResetKey()
     {
         return RandomNumeric(DefCount);

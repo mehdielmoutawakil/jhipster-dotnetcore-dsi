@@ -18,11 +18,12 @@
 -%>
 using MediatR;
 using <%= namespace %>.Dto.Authentication;
+using <%= namespace %>.Dto;
 using System.Security.Principal;
 
 namespace <%= namespace %>.Application.Commands;
 
-public class UserJwtAuthorizeCommand : IRequest<IPrincipal>
+public class UserJwtAuthorizeCommand : IRequest<(IPrincipal, UserDto)>
 {
     public LoginDto LoginDto { get; set; }
 }

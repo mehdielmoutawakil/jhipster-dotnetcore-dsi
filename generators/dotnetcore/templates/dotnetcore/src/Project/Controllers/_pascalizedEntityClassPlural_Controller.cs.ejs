@@ -60,12 +60,13 @@ using <%= namespace %>.Infrastructure.Web.Rest.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using Application.Utility;
+using System.Runtime.CompilerServices;
 
 namespace <%= namespace %>.Controllers
 {
-    [Authorize]
-    [Route("api/<%= kebabCasedEntityClassPlural %>")]
+    [Route("api/<%= pascalizedEntityClassPlural %>")]
     [ApiController]
     public class <%= pascalizedEntityClassPlural %>Controller : ControllerBase
     {
@@ -84,6 +85,18 @@ namespace <%= namespace %>.Controllers
         <%_ } _%>
         <%_ } _%>
 
+        /// <summary>
+        /// Variable used to get API method name, in async calls
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
+        
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="log"></param>
+        /// <param name="mediator"></param>
         <%_ if (cqrsEnabled) { _%>
         public <%= pascalizedEntityClassPlural %>Controller(ILogger<<%= pascalizedEntityClassPlural %>Controller> log, IMediator mediator)
         {
@@ -113,16 +126,24 @@ namespace <%= namespace %>.Controllers
         }
         <%_ } _%>
 
+        /// <summary>
+        /// Create new <%= pascalizedEntityClass %>
+        /// </summary>
+        /// <param name="userDto"></param>
+        /// <returns></returns>
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<<%= hasDto ? asDto(pascalizedEntityClass) : pascalizedEntityClass %>>> Create<%= pascalizedEntityClass %>([FromBody] <%= hasDto ? asDto(pascalizedEntityClass) : pascalizedEntityClass %> <%= hasDto ? asDto(camelCasedEntityClass) : camelCasedEntityClass %>)
         {
             _log.LogDebug($"REST request to save <%= pascalizedEntityClass %> : {<%= hasDto ? asDto(camelCasedEntityClass) : camelCasedEntityClass %>}");
+
             <%_ if (!isNumericPrimaryKey(primaryKeyType)) { _%>
             if (<%= hasDto ? asDto(camelCasedEntityClass) : camelCasedEntityClass %>.Id != null)
             <%_ } else { _%>
             if (<%= hasDto ? asDto(camelCasedEntityClass) : camelCasedEntityClass %>.Id != 0 && <%= hasDto ? asDto(camelCasedEntityClass) : camelCasedEntityClass %>.Id != null)
             <%_ } _%>
                 throw new BadRequestAlertException("A new <%= camelCasedEntityClass %> cannot already have an ID", EntityName, "idexists");
+
             <%_ if (cqrsEnabled) { _%>
             <% if (hasDto) { _%> var <% } %><%= camelCasedEntityClass %> = await _mediator.Send(new <%= pascalizedEntityClass %>CreateCommand { <%= hasDto ? asDto(pascalizedEntityClass) : pascalizedEntityClass %> = <%= hasDto ? asDto(camelCasedEntityClass) : camelCasedEntityClass %> });
             <%_ } else { %>
@@ -136,10 +157,50 @@ namespace <%= namespace %>.Controllers
             await _<%= camelCasedEntityClass %>Repository.SaveChangesAsync();
             <%_ } _%>
             <%_ } _%>
+
             return CreatedAtAction(nameof(Get<%= pascalizedEntityClass %>), new { id = <%= camelCasedEntityClass %>.Id }, <%= camelCasedEntityClass %>)
                 .WithHeaders(HeaderUtil.CreateEntityCreationAlert(EntityName, <%= camelCasedEntityClass %>.Id.ToString()));
         }
 
+        <%_ if (anyFieldIsBlobDerived) { _%>
+        /// <summary>
+        /// Uploads image files for the specified <%= camelCasedEntityClass %>.
+        /// </summary>
+        /// <param name="id">The <%= camelCasedEntityClass %> ID.</param>
+        /// <param name="files">List of image files.</param>
+        /// <returns>Result of the upload operation.</returns>
+        [Authorize]
+        [HttpPost("uploadfiles/{id}")]
+        public async Task<IActionResult> UploadImages(<%= primaryKeyType %> id, List<IFormFile> files)
+        {
+            if (files == null || files.Count == 0)
+            {
+                return BadRequest("No files provided.");
+            }
+
+            try
+            {
+                var imagePaths = await _mediator.Send(new <%= pascalizedEntityClass %>UploadFilesCommand
+                {
+                    Id = id,
+                    Files = files
+                });
+                return Ok(new { ImagePaths = imagePaths });
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(CommHelper.LogError(typeof(<%= pascalizedEntityClassPlural %>Controller), GetActualAsyncMethodName(), ex));
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Internal server error: {ex.Message}");
+            }
+        }
+        <%_ } _%>
+
+        /// <summary>
+        /// Update <%= pascalizedEntityClass %> Informations
+        /// </summary>
+        /// <param name="userDto"></param>
+        /// <returns></returns>
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update<%= pascalizedEntityClass %>(<%= primaryKeyType %> id, [FromBody] <%= hasDto ? asDto(pascalizedEntityClass) : pascalizedEntityClass %> <%= hasDto ? asDto(camelCasedEntityClass) : camelCasedEntityClass %>)
         {
@@ -167,6 +228,12 @@ namespace <%= namespace %>.Controllers
                 .WithHeaders(HeaderUtil.CreateEntityUpdateAlert(EntityName, <%= camelCasedEntityClass %>.Id.ToString()));
         }
 
+        /// <summary>
+        /// Get List of <%= pascalizedEntityClassPlural %>
+        /// </summary>
+        /// <param name="pageable"></param>
+        /// <returns></returns>
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<<%= hasDto ? asDto(pascalizedEntityClass) : pascalizedEntityClass %>>>> GetAll<%= pascalizedEntityClassPlural %>(IPageable pageable)
         {
@@ -203,6 +270,12 @@ namespace <%= namespace %>.Controllers
             <%_ } _%>
         }
 
+        /// <summary>
+        /// Get <%= pascalizedEntityClass %> details
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get<%= pascalizedEntityClass %>([FromRoute] <%= primaryKeyType %> id)
         {
@@ -235,6 +308,12 @@ namespace <%= namespace %>.Controllers
             <%_ } _%>
         }
 
+        /// <summary>
+        /// Delete <%= pascalizedEntityClass %> by id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete<%= pascalizedEntityClass %>([FromRoute] <%= primaryKeyType %> id)
         {
@@ -252,6 +331,12 @@ namespace <%= namespace %>.Controllers
             return NoContent().WithHeaders(HeaderUtil.CreateEntityDeletionAlert(EntityName, id.ToString()));
         }
 
+        /// <summary>
+        /// Get List of <%= pascalizedEntityClass %> with pagination, sort and filters
+        /// </summary>
+        /// <param name="queryParameters"></param>
+        /// <returns></returns>
+        [Authorize]
         [HttpGet("search")]
         public async Task<ActionResult<PaginatedResult<<%= pascalizedEntityClass %>>>> Search([FromQuery] IDictionary<string, string> queryParameters)
         {
@@ -275,6 +360,7 @@ namespace <%= namespace %>.Controllers
             }
             catch (ArgumentException ex)
             {
+                _log.LogError(CommHelper.LogError(typeof(<%= pascalizedEntityClassPlural %>Controller), GetActualAsyncMethodName(), ex));
                 return BadRequest(ex.Message);
             }
         }

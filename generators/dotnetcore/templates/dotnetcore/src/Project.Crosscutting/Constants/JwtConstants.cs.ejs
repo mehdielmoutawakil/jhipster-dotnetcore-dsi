@@ -14,8 +14,18 @@
 -%>
 namespace <%= namespace %>.Crosscutting.Constants;
 
+/// <summary>
+/// JWT constants.
+/// </summary>
 public static class JwtConstants
 {
+    /// <summary>
+    /// HTTP authorization header.
+    /// </summary>
     public static readonly string AuthorizationHeader = "Authorization";
+
+    /// <summary>
+    /// Bearer token prefix.
+    /// </summary>
     public static readonly string BearerPrefix = "Bearer";
 }

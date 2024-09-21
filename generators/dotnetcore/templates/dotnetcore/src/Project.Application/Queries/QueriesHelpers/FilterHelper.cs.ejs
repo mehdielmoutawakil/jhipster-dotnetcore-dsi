@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Collections;
 
 namespace <%= namespace %>.Application.Queries
 {
@@ -11,51 +12,109 @@ namespace <%= namespace %>.Application.Queries
             try
             {
                 var parameter = Expression.Parameter(typeof(T), "e");
-                var property = Expression.Property(parameter, filter.Field);
 
-                // Determine the underlying type of the property (handling nullable types)
-                var propertyType = property.Type;
-                var underlyingType = Nullable.GetUnderlyingType(propertyType) ?? propertyType;
-
-                // Convert the filter value to the appropriate type
-                object convertedValue;
-                try
+                // Handling nested properties (e.g., "Activities.Id")
+                Expression property;
+                if (filter.Field.Contains('.'))
                 {
-                    convertedValue = Convert.ChangeType(filter.Value, underlyingType);
-                }
-                catch (Exception ex)
-                {
-                    throw new InvalidOperationException($"Error converting filter value to type {underlyingType}", ex);
-                }
+                    var properties = filter.Field.Split('.');
+                    property = Expression.Property(parameter, properties[0]);
 
-                // Create a comparison expression based on the operator
-                Expression comparison;
-                var constant = Expression.Constant(convertedValue, underlyingType);
-
-                if (property.Type.IsGenericType && property.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                {
-                    var hasValue = Expression.Property(property, "HasValue");
-                    var value = Expression.Property(property, "Value");
-
-                    comparison = CreateComparisonExpression(filter.Operator.ToLower(), value, constant, underlyingType);
-
-                    if (comparison != null)
+                    // If the first part is a collection, you cannot directly access the 'Id' but must use 'Any'
+                    if (typeof(IEnumerable).IsAssignableFrom(property.Type) && property.Type.IsGenericType)
                     {
-                        comparison = Expression.AndAlso(hasValue, comparison);
+                        var elementType = property.Type.GetGenericArguments()[0]; // Get the type of the element in the collection
+                        var innerParameter = Expression.Parameter(elementType, "a"); // 'a' represents each Activity
+                        var innerProperty = Expression.Property(innerParameter, properties[1]); // Access 'Id' on each Activity
+
+                        // Convert filter values to the appropriate type (e.g., long?)
+                        var convertedValues = filter.Value.Split(',').Select(v => (long?)Convert.ToInt64(v)).AsQueryable();
+
+                        if (filter.Operator.Equals("in", StringComparison.OrdinalIgnoreCase))
+                        {
+                            // Create a constant expression for the converted list
+                            var constantList = Expression.Constant(convertedValues);
+
+                            // Get the Contains method for the appropriate type
+                            var containsMethod = typeof(Enumerable)
+                                .GetMethods()
+                                .First(m => m.Name == "Contains" && m.GetParameters().Length == 2)
+                                .MakeGenericMethod(innerProperty.Type);
+
+                            // Create an expression for 'a.Id IN [1, 2]'
+                            var anyExpression = Expression.Call(containsMethod, constantList, innerProperty);
+
+                            // Build the final expression for 'Activities.Any(a => a.Id IN [1, 2])'
+                            var lambdaAny = Expression.Lambda(anyExpression, innerParameter);
+                            var anyMethod = typeof(Enumerable)
+                                .GetMethods()
+                                .First(m => m.Name == "Any" && m.GetParameters().Length == 2)
+                                .MakeGenericMethod(elementType);
+
+                            var anyCall = Expression.Call(anyMethod, property, lambdaAny);
+
+                            var lambda = Expression.Lambda<Func<T, bool>>(anyCall, parameter);
+                            return query.Where(lambda);
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException("IN operator requires a list of values.");
+                        }
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("The specified field is not a collection.");
                     }
                 }
                 else
                 {
-                    comparison = CreateComparisonExpression(filter.Operator.ToLower(), property, constant, underlyingType);
+                    property = Expression.Property(parameter, filter.Field);
+                    // Determine the underlying type of the property (handling nullable types)
+                    var propertyType = property.Type;
+                    var underlyingType = Nullable.GetUnderlyingType(propertyType) ?? propertyType;
+
+                    // Convert the filter value to the appropriate type
+                    object convertedValue;
+                    try
+                    {
+                        convertedValue = Convert.ChangeType(filter.Value, underlyingType);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException($"Error converting filter value to type {underlyingType}", ex);
+                    }
+
+                    // Create a comparison expression based on the operator
+                    Expression comparison;
+                    var constant = Expression.Constant(convertedValue, underlyingType);
+
+                    if (property.Type.IsGenericType && property.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    {
+                        var hasValue = Expression.Property(property, "HasValue");
+                        var value = Expression.Property(property, "Value");
+
+                        comparison = CreateComparisonExpression(filter.Operator.ToLower(), value, constant, underlyingType);
+
+                        if (comparison != null)
+                        {
+                            comparison = Expression.AndAlso(hasValue, comparison);
+                        }
+                    }
+                    else
+                    {
+                        comparison = CreateComparisonExpression(filter.Operator.ToLower(), property, constant, underlyingType);
+                    }
+
+                    if (comparison == null)
+                    {
+                        throw new InvalidOperationException($"Unsupported operator: {filter.Operator}");
+                    }
+
+                    var lambda = Expression.Lambda<Func<T, bool>>(comparison, parameter);
+                    return query.Where(lambda);
                 }
 
-                if (comparison == null)
-                {
-                    throw new InvalidOperationException($"Unsupported operator: {filter.Operator}");
-                }
-
-                var lambda = Expression.Lambda<Func<T, bool>>(comparison, parameter);
-                return query.Where(lambda);
+                
             }
             catch (Exception ex)
             {

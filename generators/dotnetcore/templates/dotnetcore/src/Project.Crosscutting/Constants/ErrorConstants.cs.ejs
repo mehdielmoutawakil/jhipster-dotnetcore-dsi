@@ -14,16 +14,58 @@
 -%>
 namespace <%= namespace %>.Crosscutting.Constants;
 
+/// <summary>
+/// Error constants.
+/// </summary>
 public static class ErrorConstants
 {
-    public const string ErrValidation = "error.validation";
-    private const string ProblemBaseUrl = "https://www.jhipster.tech/problem";
-    public static readonly string DefaultType = $"{ProblemBaseUrl}/problem-with-message";
-    public static readonly string ConstraintViolationType = $"{ProblemBaseUrl}/constraint-violation";
-    public static readonly string ParametrizedType = $"{ProblemBaseUrl}/parametrized";
-    public static readonly string EntityNotFoundType = $"{ProblemBaseUrl}/entity-not-found";
-    public static readonly string InvalidPasswordType = $"{ProblemBaseUrl}/invalid-password";
-    public static readonly string EmailAlreadyUsedType = $"{ProblemBaseUrl}/email-already-used";
-    public static readonly string LoginAlreadyUsedType = $"{ProblemBaseUrl}/login-already-used";
-    public static readonly string EmailNotFoundType = $"{ProblemBaseUrl}/email-not-found";
+    /// <summary>
+        /// Validation error code.
+        /// </summary>
+        public const string ErrValidation = "error.validation";
+    
+        /// <summary>
+        /// Base URL for problem types.
+        /// </summary>
+        private const string ProblemBaseUrl = "https://www.jhipster.tech/problem";
+    
+        /// <summary>
+        /// Default problem type.
+        /// </summary>
+        public static readonly string DefaultType = $"{ProblemBaseUrl}/problem-with-message";
+    
+        /// <summary>
+        /// Constraint violation problem type.
+        /// </summary>
+        public static readonly string ConstraintViolationType = $"{ProblemBaseUrl}/constraint-violation";
+    
+        /// <summary>
+        /// Parametrized problem type.
+        /// </summary>
+        public static readonly string ParametrizedType = $"{ProblemBaseUrl}/parametrized";
+    
+        /// <summary>
+        /// Entity not found problem type.
+        /// </summary>
+        public static readonly string EntityNotFoundType = $"{ProblemBaseUrl}/entity-not-found";
+    
+        /// <summary>
+        /// Invalid password problem type.
+        /// </summary>
+        public static readonly string InvalidPasswordType = $"{ProblemBaseUrl}/invalid-password";
+    
+        /// <summary>
+        /// Email already used problem type.
+        /// </summary>
+        public static readonly string EmailAlreadyUsedType = $"{ProblemBaseUrl}/email-already-used";
+    
+        /// <summary>
+        /// Login already used problem type.
+        /// </summary>
+        public static readonly string LoginAlreadyUsedType = $"{ProblemBaseUrl}/login-already-used";
+    
+        /// <summary>
+        /// Email not found problem type.
+        /// </summary>
+        public static readonly string EmailNotFoundType = $"{ProblemBaseUrl}/email-not-found";
 }

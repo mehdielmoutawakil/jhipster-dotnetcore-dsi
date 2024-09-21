@@ -58,6 +58,11 @@ public class UsersController : ControllerBase
     private readonly IUserService _userService;
     <%_ } _%>
 
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="log"></param>
+    /// <param name="mediator"></param>
     <%_ if (cqrsEnabled) { _%>
     public UsersController(ILogger<UsersController> log, IMediator mediator)
     {
@@ -76,6 +81,11 @@ public class UsersController : ControllerBase
     }
     <%_ } _%>
 
+    /// <summary>
+    /// Create new User
+    /// </summary>
+    /// <param name="userDto"></param>
+    /// <returns></returns>
     [HttpPost]
     public async Task<ActionResult<User>> CreateUser([FromBody] AddUserDto userDto)
     {
@@ -96,6 +106,11 @@ public class UsersController : ControllerBase
             .WithHeaders(HeaderUtil.CreateEntityCreationAlert("userManagement.created", newUser.Login));
     }
 
+    /// <summary>
+    /// Update User Informations
+    /// </summary>
+    /// <param name="userDto"></param>
+    /// <returns></returns>
     [HttpPut]
     public async Task<IActionResult> UpdateUser([FromBody] UpdateUserDto userDto)
     {
@@ -114,12 +129,23 @@ public class UsersController : ControllerBase
             .WithHeaders(HeaderUtil.CreateAlert("userManagement.updated", userDto.Login));
     }
 
+    /// <summary>
+    /// Update User by id in query
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="userDto"></param>
+    /// <returns></returns>
     [HttpPut("{id}")]
      public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserDto userDto)
     {
      return await UpdateUser(userDto);
      }
 
+    /// <summary>
+    /// Get List of Users
+    /// </summary>
+    /// <param name="pageable"></param>
+    /// <returns></returns>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<User>>> GetAllUsers(IPageable pageable)
     {
@@ -134,6 +160,10 @@ public class UsersController : ControllerBase
         return Ok(userDtos).WithHeaders(headers);
     }
 
+    /// <summary>
+    /// get List of Permissions
+    /// </summary>
+    /// <returns></returns>
     [HttpGet("authorities")]
     [Authorize(Roles = RolesConstants.ADMIN)]
     <%_ if (cqrsEnabled) { _%>
@@ -148,8 +178,13 @@ public class UsersController : ControllerBase
     }
     <%_ } _%>
 
+    /// <summary>
+    /// Get User details
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetUser([FromRoute] string id)
+    public async Task<IActionResult> GetUser([FromRoute] int id)
     {
         _log.LogDebug($"REST request to get User : {id}");
         <%_ if (cqrsEnabled) { _%>
@@ -161,6 +196,11 @@ public class UsersController : ControllerBase
         return ActionResultUtil.WrapOrNotFound(userDto);
     }
 
+    /// <summary>
+    /// Delete User by id
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     [HttpDelete("{id}")]
     [Authorize]
     public async Task<IActionResult> DeleteUser([FromRoute] string id)
@@ -174,6 +214,11 @@ public class UsersController : ControllerBase
         return NoContent().WithHeaders(HeaderUtil.CreateEntityDeletionAlert("userManagement.deleted", id));
     }
 
+    /// <summary>
+    /// Get List of User with pagination, sort and filters
+    /// </summary>
+    /// <param name="queryParameters"></param>
+    /// <returns></returns>
     [HttpGet("search")]
     public async Task<ActionResult<PaginatedResult<User>>> Search([FromQuery] IDictionary<string, string> queryParameters)
     {

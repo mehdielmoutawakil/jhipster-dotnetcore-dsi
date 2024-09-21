@@ -12,19 +12,10 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -%>
-using System;
-using System.Collections.Generic;
-using System.Security.Authentication;
-using System.Threading.Tasks;
-using <%= namespace %>.Domain.Entities;
 using JHipsterNet.Web.Logging;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Sinks.Syslog;
 
 namespace <%= namespace %>.Configuration;
 
@@ -56,9 +47,11 @@ public static class SerilogConfiguration
         var url = appConfiguration.GetSection(SerilogSection)[SyslogUrl] != null
             ? appConfiguration.GetSection(SerilogSection)[SyslogUrl]
             : "localhost";
+
         var appName = appConfiguration.GetSection(SerilogSection)[SyslogAppName] != null
             ? appConfiguration.GetSection(SerilogSection)[SyslogAppName]
             : "<%= pascalizedBaseName %>App";
+
         var loggerConfiguration = new LoggerConfiguration()
             .Enrich.With<LoggerNameEnricher>()
             .WriteTo.TcpSyslog(url, port, appName)

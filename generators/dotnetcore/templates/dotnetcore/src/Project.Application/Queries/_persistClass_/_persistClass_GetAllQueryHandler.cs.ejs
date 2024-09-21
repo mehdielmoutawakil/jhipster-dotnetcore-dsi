@@ -30,9 +30,16 @@ using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 using JHipsterNet.Core.Pagination;
+using System;
+using System.Runtime.CompilerServices;
+using Serilog;
+using Application.Utility;
 
 namespace <%= namespace %>.Application.Queries;
 
+/// <summary>
+/// <%= pascalizedEntityClass %> getAll request class handler
+/// </summary>
 public class <%= pascalizedEntityClass %>GetAllQueryHandler : IRequestHandler<<%= pascalizedEntityClass %>GetAllQuery, <%= hasDto ? "Page" : "IPage" %><<%= hasDto ? asDto(pascalizedEntityClass) : pascalizedEntityClass %>>>
 {
     private IReadOnly<%= pascalizedEntityClass %>Repository _<%= camelCasedEntityClass %>Repository;
@@ -40,6 +47,17 @@ public class <%= pascalizedEntityClass %>GetAllQueryHandler : IRequestHandler<<%
     private readonly IMapper _mapper;
     <%_ } _%>
 
+    /// <summary>
+    /// Variable used to get API method name, in async calls
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
+
+    /// <summary>
+    /// <%= pascalizedEntityClass %>GetAllQueryHandler parameterized constructor
+    /// </summary>
+    /// <param name="activityRepository"></param>
     public <%= pascalizedEntityClass %>GetAllQueryHandler(
         <%_ if (hasDto) { _%>
         IMapper mapper,
@@ -52,23 +70,37 @@ public class <%= pascalizedEntityClass %>GetAllQueryHandler : IRequestHandler<<%
         _<%= camelCasedEntityClass %>Repository = <%= camelCasedEntityClass %>Repository;
     }
 
+    /// <summary>
+    /// Handler Method
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async Task<<%= hasDto ? "Page" : "IPage" %><<%= hasDto ? asDto(pascalizedEntityClass) : pascalizedEntityClass %>>> Handle(<%= pascalizedEntityClass %>GetAllQuery request, CancellationToken cancellationToken)
     {
-        var page = await _<%= camelCasedEntityClass %>Repository.QueryHelper()
-        <%_ if (databaseType != 'mongodb') { _%>
-        <%_ relationships.forEach( relationship => {
-            if (relationship.relationshipType === 'many-to-one' || relationship.relationshipType === 'one-to-one') { _%>
-            .Include(<%= camelCasedEntityClass %> => <%= camelCasedEntityClass %>.<%= relationship.relationshipFieldNamePascalized %>)
-            <%_ } else if (relationship.relationshipType === 'many-to-many' && relationship.ownerSide) { _%>
-            .Include(<%= camelCasedEntityClass %> => <%= camelCasedEntityClass %>.<%= relationship.relationshipFieldNamePascalizedPlural %>)
-            <%_ }
-            }); _%>
+        try {
+            var page = await _<%= camelCasedEntityClass %>Repository.QueryHelper()
+            <%_ if (databaseType != 'mongodb') { _%>
+            <%_ relationships.forEach( relationship => {
+                if (relationship.relationshipType === 'many-to-one' || relationship.relationshipType === 'one-to-one') { _%>
+                .Include(<%= camelCasedEntityClass %> => <%= camelCasedEntityClass %>.<%= relationship.relationshipFieldNamePascalized %>)
+                <%_ } else if (relationship.relationshipType === 'many-to-many' && relationship.ownerSide) { _%>
+                .Include(<%= camelCasedEntityClass %> => <%= camelCasedEntityClass %>.<%= relationship.relationshipFieldNamePascalizedPlural %>)
+                <%_ }
+                }); _%>
+                <%_ } _%>
+                .AsNoTracking()
+                .GetPageAsync(request.Page);
+            <%_ if (hasDto) { _%>
+            return new Page<<%= asDto(pascalizedEntityClass) %>>(page.Content.Select(entity => _mapper.Map<<%= asDto(pascalizedEntityClass) %>>(entity)).ToList(), request.Page, page.TotalElements);
+            <%_ } else { _%>
+            return page;
             <%_ } _%>
-            .GetPageAsync(request.Page);
-        <%_ if (hasDto) { _%>
-        return new Page<<%= asDto(pascalizedEntityClass) %>>(page.Content.Select(entity => _mapper.Map<<%= asDto(pascalizedEntityClass) %>>(entity)).ToList(), request.Page, page.TotalElements);
-        <%_ } else { _%>
-        return page;
-        <%_ } _%>
+        }
+        catch (Exception ex)
+        {
+            Log.Error(CommHelper.LogError(typeof(<%= pascalizedEntityClass %>GetAllQueryHandler), GetActualAsyncMethodName(), ex));
+            throw ex;
+        }
     }
 }

@@ -1,0 +1,15 @@
+﻿using MediatR;
+
+namespace <%= namespace %>.Application.Commands
+{
+    /// <summary>
+    /// Position delete request
+    /// </summary>
+    public class PositionDeleteCommand : IRequest<bool>
+    {
+        /// <summary>
+        /// Position delete request body
+        /// </summary>
+        public int PositionId { get; set; }
+    }
+}

@@ -14,17 +14,32 @@ using <%= namespace %>.Infrastructure.Data;
 
 namespace <%= namespace %>.Application.Commands
 {
+    /// <summary>
+    /// Position update class handler
+    /// </summary>
     public class PositionUpdateCommandHandler : IRequestHandler<PositionUpdateCommand, PositionDto>
     {
         private readonly ApplicationDatabaseContext _context;
         private readonly ILogger<PositionUpdateCommandHandler> _logger;
 
+        /// <summary>
+        /// Parameterized constructor
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="logger"></param>
         public PositionUpdateCommandHandler(ApplicationDatabaseContext context, ILogger<PositionUpdateCommandHandler> logger)
         {
             _context = context;
             _logger = logger;
         }
 
+        /// <summary>
+        /// Handler method
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ApplicationException"></exception>
         public async Task<PositionDto> Handle(PositionUpdateCommand request, CancellationToken cancellationToken)
         {
             try
@@ -45,16 +60,18 @@ namespace <%= namespace %>.Application.Commands
                 _context.PositionPermissions.RemoveRange(position.PositionPermissions);
 
                 // Add new permissions
-                foreach (var item in request.positionDto.Permissions)
+                if (request.positionDto.Permissions != null)
                 {
-                    var positionPermission = new PositionPermission
+                    foreach (var item in request.positionDto.Permissions)
                     {
-                        PositionId = position.Id,
-                        PermissionId = int.Parse(item)
-                    };
-                    await _context.PositionPermissions.AddAsync(positionPermission, cancellationToken);
+                        var positionPermission = new PositionPermission
+                        {
+                            PositionId = position.Id,
+                            PermissionId = int.Parse(item)
+                        };
+                        await _context.PositionPermissions.AddAsync(positionPermission, cancellationToken);
+                    }
                 }
-
                 // Save changes to the database
                 await _context.SaveChangesAsync(cancellationToken);
 

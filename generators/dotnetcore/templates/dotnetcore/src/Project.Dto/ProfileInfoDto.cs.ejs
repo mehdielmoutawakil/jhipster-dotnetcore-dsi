@@ -17,18 +17,31 @@ using Newtonsoft.Json;
 
 namespace <%= namespace %>.Dto.ProfileInfo;
 
+/// <summary>
+/// Profile information data transfer object.
+/// </summary>
 public class ProfileInfoDto
 {
+    /// <summary>
+    /// Display ribbon on profiles flag.
+    /// </summary>
     [JsonProperty("display-ribbon-on-profiles")]
     public string DisplayRibbonOnProfiles { get; set; }
 
+    /// <summary>
+    /// List of active profiles.
+    /// </summary>
     [JsonProperty("activeProfiles")]
     public List<string> ActiveProfiles { get; set; }
 
+    /// <summary>
+    /// Initializes a new instance of the ProfileInfoDto class.
+    /// </summary>
+    /// <param name="displayRibbonOnProfiles">Display ribbon on profiles flag.</param>
+    /// <param name="activeProfiles">List of active profiles.</param>
     public ProfileInfoDto(string displayRibbonOnProfiles, List<string> activeProfiles)
     {
         DisplayRibbonOnProfiles = displayRibbonOnProfiles;
         ActiveProfiles = activeProfiles;
-
     }
 }

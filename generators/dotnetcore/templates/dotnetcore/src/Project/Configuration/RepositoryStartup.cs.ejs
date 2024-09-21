@@ -24,8 +24,14 @@ using <%= namespace %>.Infrastructure.Data.Repositories;
 
 namespace <%= namespace %>.Configuration;
 
+/// <summary>
+/// Repository configuration.
+/// </summary>
 public static class RepositoryStartup
 {
+    /// <summary>
+    /// Adds repository services.
+    /// </summary>
     public static IServiceCollection AddRepositoryModule(this IServiceCollection services)
     {
 <%_ if (databaseType === 'mongodb') { _%>

@@ -18,11 +18,15 @@ namespace <%= namespace %>.Domain.Entities.Interfaces;
 
 public interface IAuditedEntityBase
 {
-    string CreatedBy { get; set; }
+    string? CreatedBy { get; set; }
 
-    DateTime CreatedDate { get; set; }
+    DateTime? CreatedAt { get; set; }
 
-    string LastModifiedBy { get; set; }
+    string? UpdatedBy { get; set; }
 
-    DateTime LastModifiedDate { get; set; }
+    DateTime? UpdatedAt { get; set; }
+
+    string? DeletedBy { get; set; }
+
+    DateTime? DeletedAt { get; set; }
 }

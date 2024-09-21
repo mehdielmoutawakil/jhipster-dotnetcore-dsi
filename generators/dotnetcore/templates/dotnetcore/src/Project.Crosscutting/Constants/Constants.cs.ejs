@@ -14,11 +14,28 @@
 -%>
 namespace <%= namespace %>.Crosscutting.Constants;
 
+/// <summary>
+/// Application constants.
+/// </summary>
 public static class Constants
 {
-    // Regex for acceptable logins
+    /// <summary>
+    /// Regex pattern for acceptable logins.
+    /// </summary>
     public const string LoginRegex = "^[_.@A-Za-z0-9-]*$";
+    
+    /// <summary>
+    /// System account username.
+    /// </summary>
     public const string SystemAccount = "system";
+    
+    /// <summary>
+    /// Anonymous user username.
+    /// </summary>
     public const string AnonymousUser = "anonymoususer";
+    
+    /// <summary>
+    /// Default language key.
+    /// </summary>
     public const string DefaultLangKey = "en";
 }

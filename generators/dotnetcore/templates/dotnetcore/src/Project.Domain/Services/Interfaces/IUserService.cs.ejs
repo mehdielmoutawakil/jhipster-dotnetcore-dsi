@@ -40,4 +40,5 @@ public interface IUserService
     Task UpdateUser(string firstName, string lastName, string email, string langKey, string imageUrl);
     Task<User> GetUserWithUserRoles();
     Task<IPage<User>> GetAllPublicUsers(IPageable pageable);
+    Task<bool> IsPositionAssignedToUserAsync(int positionId);
 }

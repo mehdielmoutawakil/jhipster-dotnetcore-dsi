@@ -85,6 +85,71 @@ export const entityFiles = {
   ],
 };
 
+export const entityfilesWithUploadFileCommands = {
+  server: [
+    {
+      path: SERVER_SRC_DIR,
+      renameTo: renameDotNetCore(),
+      templates: [
+        'Project.Domain/Entities/_persistClass_.cs',
+        'Project/Controllers/_pascalizedEntityClassPlural_Controller.cs',
+        'Project.Domain/Repositories/Interfaces/I_persistClass_Repository.cs',
+        'Project.Domain/Repositories/Interfaces/IReadOnly_persistClass_Repository.cs',
+        'Project.Infrastructure/Data/Repositories/_persistClass_Repository.cs',
+        'Project.Infrastructure/Data/Repositories/ReadOnly_persistClass_Repository.cs',
+      ],
+    },
+    {
+      condition: generator => generator.cqrsEnabled === true,
+      path: SERVER_SRC_DIR,
+      renameTo: renameDotNetCore(),
+      templates: [
+        'Project.Application/Queries/_persistClass_/_persistClass_GetQuery.cs',
+        'Project.Application/Queries/_persistClass_/_persistClass_GetQueryHandler.cs',
+        'Project.Application/Queries/_persistClass_/_persistClass_GetAllQuery.cs',
+        'Project.Application/Queries/_persistClass_/_persistClass_GetAllQueryHandler.cs',
+        'Project.Application/Queries/_persistClass_/_persistClass_SearchQuery.cs',
+        'Project.Application/Queries/_persistClass_/_persistClass_SearchQueryHandler.cs',
+        'Project.Application/Commands/_persistClass_/_persistClass_DeleteCommand.cs',
+        'Project.Application/Commands/_persistClass_/_persistClass_DeleteCommandHandler.cs',
+        'Project.Application/Commands/_persistClass_/_persistClass_CreateCommand.cs',
+        'Project.Application/Commands/_persistClass_/_persistClass_CreateCommandHandler.cs',
+        'Project.Application/Commands/_persistClass_/_persistClass_UpdateCommand.cs',
+        'Project.Application/Commands/_persistClass_/_persistClass_UpdateCommandHandler.cs',
+        'Project.Application/Commands/_persistClass_/_persistClass_UploadFilesCommand.cs',
+        'Project.Application/Commands/_persistClass_/_persistClass_UploadFilesCommandHandler.cs',
+      ],
+    },
+    {
+      condition: generator => generator.dto === 'mapstruct',
+      path: SERVER_SRC_DIR,
+      renameTo: renameDotNetCore(),
+      templates: ['Project.Dto/_dtoClass_.cs'],
+    },
+    {
+      condition: generator => generator.dto === 'mapstruct',
+      path: SERVER_SRC_DIR,
+      renameTo: renameDotNetCore(),
+      templates: ['Project.Dto/AuditedEntityBaseDto.cs'],
+    },
+  ],
+  test: [
+    {
+      path: SERVER_TEST_DIR,
+      renameTo: renameDotNetCore(SERVER_TEST_DIR),
+      templates: ['Project.Test/Controllers/_persistClass_ControllerIntTest.cs'],
+    },
+  ],
+  service: [
+    {
+      condition: generator => generator.service === 'serviceImpl' && generator.cqrsEnabled !== true,
+      path: SERVER_SRC_DIR,
+      renameTo: renameDotNetCore(),
+      templates: ['Project.Domain.Services/_entityClass_Service.cs', 'Project.Domain/Services/Interfaces/I_entityClass_Service.cs'],
+    },
+  ],
+};
+
 export const entityCommonFiles = {
   server: [
     {

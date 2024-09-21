@@ -26,8 +26,16 @@ using System.Linq;
 
 namespace <%= namespace %>.Configuration;
 
+/// <summary>
+/// Identity configuration module.
+/// </summary>
 public static class IdentityConfiguration
 {
+    /// <summary>
+    /// Configures the application identity.
+    /// </summary>
+    /// <param name="builder">Application builder.</param>
+    /// <returns>Application builder with identity configured.</returns>
     public static IApplicationBuilder UseApplicationIdentity(this IApplicationBuilder builder)
     {
         using (var scope = builder.ApplicationServices.CreateScope())
@@ -51,16 +59,15 @@ public static class IdentityConfiguration
     }
 
     /// <summary>
-    /// Preparer users data
+    /// Prepares users data.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>Users data.</returns>
     private static IEnumerable<User> Users()
     {
         return new List<User>
         {
             new User
             {
-                Id = "user-0",
                 UserName = "admin",
                 PasswordHash = "$2y$10$cKmVx7svfQPPCpaQ3nKY.ekRottKEUjIDfRAe0rdFxYKks4qJHqlG",
                 FirstName = "admin",
@@ -72,7 +79,6 @@ public static class IdentityConfiguration
             },
             new User
             {
-                Id = "user-1",
                 UserName = "user",
                 PasswordHash = "$2y$10$N.Xryf511mzdFPYmwOipE.hOgXfR/X5Ui/t6uWshXplfcoc3xkT7W",
                 FirstName = "user",
@@ -86,9 +92,10 @@ public static class IdentityConfiguration
     }
 
     /// <summary>
-    /// Preparer navigation menu data
+    /// Prepares navigation menu data.
     /// </summary>
-    /// <returns></returns>
+    /// <param name="databaseContext">Database context.</param>
+    /// <returns>Navigation menu data.</returns>
     private static async Task<IEnumerable<NavMenu>> NavMenusAsync(ApplicationDatabaseContext databaseContext)
     {
         List<NavMenu> navMenus = new List<NavMenu>
@@ -148,9 +155,10 @@ public static class IdentityConfiguration
     }
 
     /// <summary>
-    /// Preparer permissions data
+    /// Prepares permissions data.
     /// </summary>
-    /// <returns></returns>
+    /// <param name="databaseContext">Database context.</param>
+    /// <returns>Permissions data.</returns>
     private static IEnumerable<Permission> Permissions(ApplicationDatabaseContext databaseContext)
     {
         // Define the possible actions
@@ -160,10 +168,10 @@ public static class IdentityConfiguration
         var excludedEntities = new[] {
             nameof(Role),
             nameof(UserRole),
-            nameof(IdentityUserClaim<string>),
-            nameof(IdentityUserLogin<string>),
-            nameof(IdentityRoleClaim<string>),
-            nameof(IdentityUserToken<string>),
+            nameof(IdentityUserClaim<int>),
+            nameof(IdentityUserLogin<int>),
+            nameof(IdentityRoleClaim<int>),
+            nameof(IdentityUserToken<int>),
             nameof(NavMenu),
             nameof(Permission),
             nameof(PositionPermission),
@@ -193,11 +201,12 @@ public static class IdentityConfiguration
             .Where(p => !existingPermissions.Any(ep => ep.Name == p.Name && ep.Group == p.Group)) // Filter out existing permissions
             .ToArray();
     }
-    
+
     /// <summary>
-    /// Launch permissions seed data
+    /// Seeds permissions data.
     /// </summary>
-    /// <returns></returns>
+    /// <param name="databaseContext">Database context.</param>
+    /// <returns>Task.</returns>
     private static async Task SeedPermissions(ApplicationDatabaseContext databaseContext)
     {
         await databaseContext.Permissions.AddRangeAsync(Permissions(databaseContext));
@@ -205,9 +214,10 @@ public static class IdentityConfiguration
     }
 
     /// <summary>
-    /// Launch navigation menu seed data
+    /// Seeds navigation menu data.
     /// </summary>
-    /// <returns></returns>
+    /// <param name="databaseContext">Database context.</param>
+    /// <returns>Task.</returns>
     private static async Task SeedNavMenus(ApplicationDatabaseContext databaseContext)
     {
         foreach (NavMenu navmenu in await NavMenusAsync(databaseContext))
@@ -249,7 +259,8 @@ public static class IdentityConfiguration
     {
         foreach (var user in Users())
         {
-            var dbUser = await userManager.FindByIdAsync(user.Id);
+            var dbUser = await userManager.FindByIdAsync(user.Id.ToString());
+            
             if (dbUser == null)
             {
                 try

@@ -16,14 +16,31 @@ using <%= namespace %>.Crosscutting.Constants;
 
 namespace <%= namespace %>.Crosscutting.Exceptions;
 
+/// <summary>
+/// Exception for bad request alerts.
+/// </summary>
 public class BadRequestAlertException : BaseException
 {
-    public BadRequestAlertException(string detail, string entityName, string errorKey) : this(
-        ErrorConstants.DefaultType, detail, entityName, errorKey)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BadRequestAlertException"/> class.
+    /// </summary>
+    /// <param name="detail">The detail of the exception.</param>
+    /// <param name="entityName">The name of the entity related to the exception.</param>
+    /// <param name="errorKey">The error key.</param>
+    public BadRequestAlertException(string detail, string entityName, string errorKey) 
+        : this(ErrorConstants.DefaultType, detail, entityName, errorKey)
     {
     }
 
-    public BadRequestAlertException(string type, string detail, string entityName, string errorKey) : base(type, detail, entityName, errorKey)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BadRequestAlertException"/> class.
+    /// </summary>
+    /// <param name="type">The type of the exception.</param>
+    /// <param name="detail">The detail of the exception.</param>
+    /// <param name="entityName">The name of the entity related to the exception.</param>
+    /// <param name="errorKey">The error key.</param>
+    public BadRequestAlertException(string type, string detail, string entityName, string errorKey) 
+        : base(type, detail, entityName, errorKey)
     {
     }
 }

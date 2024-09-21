@@ -18,14 +18,33 @@ using Newtonsoft.Json;
 
 namespace <%= namespace %>.Infrastructure.Web.Rest.Utilities;
 
+/// <summary>
+/// Utility class for generating pagination HTTP headers.
+/// </summary>
 public static class PaginationUtil
 {
+    /// <summary>
+    /// Header name for total count.
+    /// </summary>
     private const string _XTotalCountHeaderName = "X-Total-Count";
+
+    /// <summary>
+    /// Header name for pagination information.
+    /// </summary>
     private const string _XPaginationHeaderName = "X-Pagination";
+
+    /// <summary>
+    /// Generates pagination HTTP headers.
+    /// </summary>
+    /// <typeparam name="T">Type of page items.</typeparam>
+    /// <param name="page">Page object.</param>
+    /// <returns>Header dictionary.</returns>
     public static IHeaderDictionary GeneratePaginationHttpHeaders<T>(this IPage<T> page)
         where T : class
     {
         IHeaderDictionary headers = new HeaderDictionary();
+
+        // Create page response object
         PageResponse pageDto = new PageResponse()
         {
             TotalCount = page.TotalElements,
@@ -37,8 +56,11 @@ public static class PaginationUtil
             IsFirst = page.IsFirst,
             IsLast = page.IsLast
         };
+
+        // Add headers
         headers.Add(_XTotalCountHeaderName, page.TotalElements.ToString());
         headers.Add(_XPaginationHeaderName, JsonConvert.SerializeObject(pageDto));
+
         return headers;
     }
 }

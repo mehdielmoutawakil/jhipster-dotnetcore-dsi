@@ -56,7 +56,7 @@ public class UsersResourceIntTest
     private const string DefaultLogin = "johndoe";
     private const string UpdatedLogin = "jhipster";
 
-    private const string DefaultId = "id";
+    private const int DefaultId = 1;
 
     private const string DefaultPassword = "passjohndoe";
     private const string UpdatedPassword = "passjhipster";
@@ -124,10 +124,7 @@ public class UsersResourceIntTest
             Activated = true,
             ImageUrl = DefaultImageurl,
             LangKey = DefaultLangkey,
-            Roles = new HashSet<string>
-            {
-                RolesConstants.USER
-            }
+            PositionId = 1
         };
 
         var response = await _client.PostAsync("/api/admin/users", TestUtil.ToJsonContent(managedUserDto));
@@ -162,43 +159,10 @@ public class UsersResourceIntTest
             Activated = true,
             ImageUrl = DefaultImageurl,
             LangKey = DefaultLangkey,
-            Roles = new HashSet<string>
-            {
-                RolesConstants.USER
-            }
+            PositionId = 1
         };
 
         // Create the User
-        var response = await _client.PostAsync("/api/admin/users", TestUtil.ToJsonContent(managedUserDto));
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-
-        // Validate the User in the database
-        var userList = _userManager.Users.ToList();
-        userList.Count().Should().Be(databaseSizeBeforeCreate);
-    }
-
-    [Fact]
-    public async Task CreateUserWithExistingId()
-    {
-        var databaseSizeBeforeCreate = _userManager.Users.Count();
-
-        var managedUserDto = new ManagedUserDto
-        {
-            Id = "id",
-            Login = DefaultLogin,
-            Password = DefaultPassword,
-            FirstName = DefaultFirstname,
-            LastName = DefaultLastname,
-            Email = DefaultEmail,
-            Activated = true,
-            ImageUrl = DefaultImageurl,
-            LangKey = DefaultLangkey,
-            Roles = new HashSet<string> {
-                RolesConstants.USER
-            }
-        };
-
-        // An entity with an existing ID cannot be created, so this API call must fail
         var response = await _client.PostAsync("/api/admin/users", TestUtil.ToJsonContent(managedUserDto));
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -245,25 +209,12 @@ public class UsersResourceIntTest
         await _userManager.CreateAsync(_user);
         var databaseSizeBeforeDelete = _userManager.Users.Count();
 
-        var response = await _client.DeleteAsync($"/api/admin/users/{_user.Login}");
+        var response = await _client.DeleteAsync($"/api/admin/users/{_user.Id}");
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Validate the database is empty
         var userList = _userManager.Users.ToList();
         userList.Count().Should().Be(databaseSizeBeforeDelete - 1);
-    }
-
-    [Fact]
-    public async Task GetAllAuthorities()
-    {
-        var response = await _client.GetAsync("/api/admin/users/authorities");
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var json = JToken.Parse(await response.Content.ReadAsStringAsync());
-        var token = json.SelectToken("$");
-        token.Should().BeOfType<JArray>();
-        var array = token.ToObject<IEnumerable<string>>();
-        array.Should().Contain(new[] { RolesConstants.USER, RolesConstants.ADMIN });
     }
 
     [Fact]
@@ -288,7 +239,7 @@ public class UsersResourceIntTest
     [Fact]
     public async Task GetNonExistingUser()
     {
-        var response = await _client.GetAsync("/api/admin/users/unknown");
+        var response = await _client.GetAsync("/api/admin/users/238719");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -299,7 +250,7 @@ public class UsersResourceIntTest
         await _userManager.CreateAsync(_user);
 
         // Get the users
-        var response = await _client.GetAsync($"/api/admin/users/{_user.Login}");
+        var response = await _client.GetAsync($"/api/admin/users/{_user.Id}");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var json = JToken.Parse(await response.Content.ReadAsStringAsync());
@@ -347,16 +298,16 @@ public class UsersResourceIntTest
         TestUtil.EqualsVerifier(typeof(User));
         var user1 = new User
         {
-            Id = "user-1"
+            Id =1
         };
         var user2 = new User
         {
             Id = user1.Id
         };
         user1.Should().Be(user2);
-        user2.Id = "user-2";
+        user2.Id = 2;
         user1.Should().NotBe(user2);
-        user1.Id = null;
+        user1.Id = 0;
         user1.Should().NotBe(user2);
     }
 
@@ -396,7 +347,7 @@ public class UsersResourceIntTest
         var databaseSizeBeforeUpdate = _userManager.Users.Count();
 
         //Update the user
-        var updatedUser = await _userManager.FindByIdAsync(_user.Id);
+        var updatedUser = await _userManager.FindByIdAsync(_user.Id.ToString());
 
         var managedUserDto = new ManagedUserDto
         {
@@ -409,25 +360,18 @@ public class UsersResourceIntTest
             Activated = updatedUser.Activated,
             ImageUrl = UpdatedImageurl,
             LangKey = UpdatedLangkey,
-            Roles = new HashSet<string>
-            {
-                RolesConstants.USER
-            }
+            PositionId = 1
         };
 
-        var response = await _client.PutAsync("/api/admin/users", TestUtil.ToJsonContent(managedUserDto));
+        var response = await _client.PutAsync($"/api/admin/users/{managedUserDto.Id}", TestUtil.ToJsonContent(managedUserDto));
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Validate the User in the database
         var userList = _userManager.Users.ToList();
         userList.Count().Should().Be(databaseSizeBeforeUpdate);
-        <%_ if (databaseType === 'mongodb') { _%>
-        var testUser = userList[userList.Count - 1];
-        <%_ } else { _%>
         //            var testUser = userList[userList.Count - 1];
         //            TODO FIX database refresh to prevent the usage of context/Reload
         var testUser = Fixme.ReloadUser(_factory, updatedUser);
-        <%_ } _%>
         testUser.FirstName.Should().Be(UpdatedFirstname);
         testUser.LastName.Should().Be(UpdatedLastname);
         testUser.Email.Should().Be(UpdatedEmail);
@@ -455,7 +399,7 @@ public class UsersResourceIntTest
         await _userManager.CreateAsync(anotherUser);
 
         //Update the user
-        var updatedUser = await _userManager.FindByIdAsync(_user.Id);
+        var updatedUser = await _userManager.FindByIdAsync(_user.Id.ToString());
 
         //TODO Add CreatedBy, CreatedDate, ModifiedBy, ModidfieDate
         var managedUserDto = new ManagedUserDto
@@ -499,7 +443,7 @@ public class UsersResourceIntTest
         await _userManager.CreateAsync(anotherUser);
 
         //Update the user
-        var updatedUser = await _userManager.FindByIdAsync(_user.Id);
+        var updatedUser = await _userManager.FindByIdAsync(_user.Id.ToString());
 
         //TODO Add CreatedBy, CreatedDate, ModifiedBy, ModidfieDate
         var managedUserDto = new ManagedUserDto
@@ -531,7 +475,7 @@ public class UsersResourceIntTest
         var databaseSizeBeforeUpdate = _userManager.Users.Count();
 
         //Update the user
-        var updatedUser = await _userManager.FindByIdAsync(_user.Id);
+        var updatedUser = await _userManager.FindByIdAsync(_user.Id.ToString());
 
         //TODO Add CreatedBy, CreatedDate, ModifiedBy, ModidfieDate
         var managedUserDto = new ManagedUserDto
@@ -545,25 +489,18 @@ public class UsersResourceIntTest
             Activated = updatedUser.Activated,
             ImageUrl = UpdatedImageurl,
             LangKey = UpdatedLangkey,
-            Roles = new HashSet<string>
-            {
-                RolesConstants.USER
-            }
+            PositionId = 1
         };
 
-        var response = await _client.PutAsync("/api/admin/users", TestUtil.ToJsonContent(managedUserDto));
+        var response = await _client.PutAsync($"/api/admin/users/{managedUserDto.Id}", TestUtil.ToJsonContent(managedUserDto));
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Validate the User in the database
         var userList = _userManager.Users.ToList();
         userList.Count().Should().Be(databaseSizeBeforeUpdate);
-        <%_ if (databaseType === 'mongodb') { _%>
-        var testUser = userList[userList.Count - 1];
-        <%_ } else { _%>
         //            var testUser = userList[userList.Count - 1];
         //            TODO FIX database refresh to prevent the usage of context/Reload
         var testUser = Fixme.ReloadUser(_factory, updatedUser);
-        <%_ } _%>
         // Ignore case
         testUser.Login.Should().BeEquivalentTo(UpdatedLogin);
         testUser.FirstName.Should().Be(UpdatedFirstname);
@@ -571,5 +508,155 @@ public class UsersResourceIntTest
         testUser.Email.Should().Be(UpdatedEmail);
         testUser.ImageUrl.Should().Be(UpdatedImageurl);
         testUser.LangKey.Should().Be(UpdatedLangkey);
+    }
+
+    [Fact]
+    public async Task TestSimpleSearch()
+    {
+        var databaseSizeBeforeUpdate = _userManager.Users.Count();
+        // Initialize the database with multiple articles
+        // Create the User
+        var user1 = new User
+        {
+            Login = "FirstLogin",
+            PasswordHash = _passwordHasher.HashPassword(null, TestUtil.RandomAlphabetic(60)),
+            FirstName = DefaultFirstname,
+            LastName = DefaultLastname,
+            Email = "FirstLogin@localhost",
+            Activated = true,
+            ImageUrl = DefaultImageurl,
+            LangKey = DefaultLangkey,
+            PositionId = 1
+        };
+        // Create the User
+        var user2 = new User
+        {
+            Login = "SecondLogin",
+            PasswordHash = _passwordHasher.HashPassword(null, TestUtil.RandomAlphabetic(60)),
+            FirstName = DefaultFirstname,
+            LastName = DefaultLastname,
+            Email = "SecondLogin@localhost",
+            Activated = true,
+            ImageUrl = DefaultImageurl,
+            LangKey = DefaultLangkey,
+            PositionId = 1
+        };
+        // Create the User
+        var user3 = new User
+        {
+            Login = "ThirdLogin",
+            PasswordHash = _passwordHasher.HashPassword(null, TestUtil.RandomAlphabetic(60)),
+            FirstName = DefaultFirstname,
+            LastName = DefaultLastname,
+            Email = "ThirdLogin@localhost",
+            Activated = true,
+            ImageUrl = DefaultImageurl,
+            LangKey = DefaultLangkey,
+            PositionId = 1
+        };
+        await _userManager.CreateAsync(user1);
+        await _userManager.CreateAsync(user2);
+        await _userManager.CreateAsync(user3);
+
+        // Act - Perform a search with filters, sorting, and pagination
+        var searchParams = new Dictionary<string, string>
+            {
+                { "pageNumber", "1" },
+                { "pageSize", "10" },
+            };
+
+        var response = await _client.GetAsync("/api/admin/users/search?" + await new FormUrlEncodedContent(searchParams).ReadAsStringAsync());
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = JToken.Parse(await response.Content.ReadAsStringAsync());
+
+        var data = json.SelectToken("$.data");
+
+        //Check the structure and count
+        data.Should().NotBeNull("The 'data' property should exist in the response.");
+        data.Should().BeOfType<JArray>("The 'data' property should be an array.");
+        data.Should().HaveCount(databaseSizeBeforeUpdate + 3, "The 'data' array should contain exactly existing user + 3 items.");
+
+        json.SelectToken("$.totalCount").Value<int>().Should().Be(databaseSizeBeforeUpdate + 3, "The 'totalCount' should be existing user + 3.");
+    }
+
+    [Fact]
+    public async Task SearchArticlesWithFilters()
+    {
+        // Arrange
+        // Initialize the database with multiple articles
+        // Create the User
+        var user1 = new User
+        {
+            Login = "FirstUserLogin",
+            PasswordHash = _passwordHasher.HashPassword(null, TestUtil.RandomAlphabetic(60)),
+            FirstName = "FirstUserName",
+            LastName = "FirstUserLastname",
+            Email = "FirstUserEmail@localhost",
+            Activated = true,
+            ImageUrl = DefaultImageurl,
+            LangKey = DefaultLangkey,
+            PositionId = 1
+        };
+        // Create the User
+        var user2 = new User
+        {
+            Login = "SecondUserLogin",
+            PasswordHash = _passwordHasher.HashPassword(null, TestUtil.RandomAlphabetic(60)),
+            FirstName = "Second UserName",
+            LastName = "Second User Lastname",
+            Email = "SecondUserEmail@localhost",
+            Activated = true,
+            ImageUrl = DefaultImageurl,
+            LangKey = DefaultLangkey,
+            PositionId = 1
+        };
+        // Create the User
+        var user3 = new User
+        {
+            Login = "ThirdUserLogin",
+            PasswordHash = _passwordHasher.HashPassword(null, TestUtil.RandomAlphabetic(60)),
+            FirstName = "ThirdUserName",
+            LastName = "ThirdUserLastname",
+            Email = "ThirdUserEmail@localhost",
+            Activated = true,
+            ImageUrl = DefaultImageurl,
+            LangKey = DefaultLangkey,
+            PositionId = 1
+        };
+        await _userManager.CreateAsync(user1);
+        await _userManager.CreateAsync(user2);
+        await _userManager.CreateAsync(user3);
+
+        // Act - Perform a search with filters, sorting, and pagination
+        var searchParams = new Dictionary<string, string>
+            {
+                // { "sort", "title,asc" }, // Sort by title in ascending order
+                { "pageNumber", "1" },
+                { "pageSize", "10" },
+                { "Login:eq", "SecondUserLogin" },
+                { "firstName:eq", "Second UserName" },
+                { "lastName:eq", "Second User Lastname" },
+            };
+
+        var response = await _client.GetAsync("/api/admin/users/search?" + await new FormUrlEncodedContent(searchParams).ReadAsStringAsync());
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = JToken.Parse(await response.Content.ReadAsStringAsync());
+        json.SelectToken("$.data").Count().Should().Be(1);
+        json.SelectTokens("$.data[*].login").Should().Contain("SecondUserLogin");
+        json.SelectTokens("$.data[*].firstName").Should().Contain("Second UserName");
+        json.SelectTokens("$.data[*].lastName").Should().Contain("Second User Lastname");
+        json.SelectTokens("$.data[*].email").Should().Contain("SecondUserEmail@localhost");
+
+        json.SelectTokens("$.data[*].login").Should().NotContain("ThirdUserLogin");
+        json.SelectTokens("$.data[*].firstName").Should().NotContain("ThirdUserName");
+        json.SelectTokens("$.data[*].lastName").Should().NotContain("ThirdUserLastname");
+        json.SelectTokens("$.data[*].email").Should().NotContain("ThirdUserEmail");
+
+        json.SelectTokens("$.data[*].login").Should().NotContain("FirstUserLogin");
+        json.SelectTokens("$.data[*].firstName").Should().NotContain("FirstUserName");
+        json.SelectTokens("$.data[*].lastName").Should().NotContain("FirstUserLastname");
+        json.SelectTokens("$.data[*].email").Should().NotContain("FirstUserEmail");
     }
 }

@@ -22,7 +22,13 @@ using MediatR;
 
 namespace <%= namespace %>.Application.Commands;
 
+/// <summary>
+/// <%= pascalizedEntityClass %> delete request
+/// </summary>
 public class <%= pascalizedEntityClass %>DeleteCommand : IRequest<Unit>
 {
+    /// <summary>
+    /// <%= pascalizedEntityClass %> delete request body
+    /// </summary>
     public <%= primaryKeyType %> Id { get; set; }
 }

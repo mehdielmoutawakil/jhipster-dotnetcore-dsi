@@ -29,7 +29,7 @@ namespace <%= namespace %>.Domain.Entities;
 <%_ if (databaseType === 'mongodb') { _%>
 public class User : MongoIdentityUser<string>, IAuditedEntityBase
 <%_ } else { _%>
-public class User : IdentityUser, IAuditedEntityBase
+public class User : IdentityUser<int>, IAuditedEntityBase
 <%_ } _%>
 {
     public string Login
@@ -119,22 +119,32 @@ public class User : IdentityUser, IAuditedEntityBase
     /// <summary>
     /// The user CreatedBy
     /// </summary>
-    public string CreatedBy { get; set; }
-    
+    public string? CreatedBy { get; set; }
+
     /// <summary>
     /// The user CreatedDate
     /// </summary>
-    public DateTime CreatedDate { get; set; }
-    
+    public DateTime? CreatedAt { get; set; }
+
     /// <summary>
     /// The user LastModifiedBy
     /// </summary>
-    public string LastModifiedBy { get; set; }
-    
+    public string? UpdatedBy { get; set; }
+
     /// <summary>
     /// The user LastModifiedDate
     /// </summary>
-    public DateTime LastModifiedDate { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+
+    /// <summary>
+    /// The user DeletedBy
+    /// </summary>
+    public string? DeletedBy { get; set; }
+
+    /// <summary>
+    /// The user DeleteAt
+    /// </summary>
+    public DateTime? DeletedAt { get; set; }
 
     public override bool Equals(object obj)
     {
@@ -145,7 +155,7 @@ public class User : IdentityUser, IAuditedEntityBase
         var user = obj as User;
         if (user?.Id == null || Id == null) return false;
 
-        return EqualityComparer<string>.Default.Equals(Id, user.Id);
+        return EqualityComparer<int>.Default.Equals(Id, user.Id);
     }
 
     public override int GetHashCode()

@@ -23,41 +23,77 @@ using Serilog;
 
 namespace <%= namespace %>.Infrastructure.Data.Extensions;
 
+/// <summary>
+/// Extensions for DbSet.
+/// </summary>
 public static class DbSetExtensions
 {
+    /// <summary>
+    /// Removes an entity by its ID.
+    /// </summary>
+    /// <typeparam name="TEntity">Type of entity.</typeparam>
+    /// <param name="receiver">DbSet instance.</param>
+    /// <param name="id">ID of entity to remove.</param>
+    /// <returns>EntityEntry of removed entity.</returns>
     public static EntityEntry<TEntity> RemoveById<TEntity>(this DbSet<TEntity> receiver, object id)
         where TEntity : class
     {
+        // Create a new instance of TEntity
         var container = Activator.CreateInstance<TEntity>();
+
+        // Get the key property of TEntity
         var idProperty = GetKeyProperty(container.GetType());
+
+        // Set the ID of the entity
         idProperty.SetValue(container, id, null);
+
+        // Attach the entity to the DbSet
         receiver.Attach(container);
+
+        // Remove the entity
         return receiver.Remove(container);
     }
 
+    /// <summary>
+    /// Gets the key property of a type.
+    /// </summary>
+    /// <param name="type">Type to get key property from.</param>
+    /// <returns>Key property of type.</returns>
     private static PropertyInfo GetKeyProperty(Type type)
     {
+        // Check for properties named "ID" or "TypeNameID"
         var key = type.GetProperties().FirstOrDefault(p =>
             p.Name.Equals("ID", StringComparison.OrdinalIgnoreCase)
             || p.Name.Equals(type.Name + "ID", StringComparison.OrdinalIgnoreCase));
 
-        if (key != null) return key;
-        key = type.GetProperties().FirstOrDefault(p =>
-            p.CustomAttributes.Any(attr => attr.AttributeType == typeof(KeyAttribute)));
+        // If not found, check for properties with KeyAttribute
+        if (key == null)
+        {
+            key = type.GetProperties().FirstOrDefault(p =>
+                p.CustomAttributes.Any(attr => attr.AttributeType == typeof(KeyAttribute)));
+        }
 
-        if (key != null) return key;
-
-        return null;
+        return key;
     }
 
+    /// <summary>
+    /// Removes navigation properties of an entity.
+    /// </summary>
+    /// <typeparam name="TEntity">Type of entity.</typeparam>
+    /// <typeparam name="TOwnerEntity">Type of owner entity.</typeparam>
+    /// <param name="receiver">DbSet instance.</param>
+    /// <param name="ownerEntity">Owner entity.</param>
+    /// <param name="id">ID of entity to remove navigation properties from.</param>
     public static void RemoveNavigationProperty<TEntity, TOwnerEntity>(this DbSet<TEntity> receiver, TOwnerEntity ownerEntity, object id)
         where TEntity : class
         where TOwnerEntity : class
     {
         try
         {
+            // Get entities with navigation property matching owner entity ID
             var receiverObjects = receiver.ApplyWhere(ownerEntity.GetType().Name + "Id", id);
 
+            // Remove each entity
             foreach (TEntity receiverObject in receiverObjects)
             {
                 receiver.Remove(receiverObject);
@@ -65,24 +101,36 @@ public static class DbSetExtensions
         }
         catch (Exception ex)
         {
+            // Log error if removal fails
             Log.Error(ex, "Error when trying to remove navigation property. The deletion was not performed");
         }
     }
 
+    /// <summary>
+    /// Applies a where clause to an IQueryable.
+    /// </summary>
+    /// <typeparam name="T">Type of entities in IQueryable.</typeparam>
+    /// <param name="source">IQueryable instance.</param>
+    /// <param name="propertyName">Name of property to filter on.</param>
+    /// <param name="propertyValue">Value to filter by.</param>
+    /// <returns>IQueryable with where clause applied.</returns>
     private static IQueryable<T> ApplyWhere<T>(this IQueryable<T> source, string propertyName, object propertyValue)
         where T : class
     {
-        // 1. Retrieve member access expression
+        // Get member access expression for property
         var mba = PropertyAccessorCache<T>.Get(propertyName);
+
         if (mba == null)
         {
+            // Log error if property does not exist
             var ex = new NullReferenceException();
             Log.Error(ex, "Error when trying to get the property, it doesn't exist");
             throw ex;
         }
 
-        // 2. Try converting value to correct type
+        // Convert value to correct type
         object value;
+
         try
         {
             value = Convert.ChangeType(propertyValue, mba.ReturnType);
@@ -93,17 +141,18 @@ public static class DbSetExtensions
             ex is OverflowException ||
             ex is ArgumentNullException)
         {
+            // Log error if type conversion fails
             Log.Error(ex, "Error when trying to convert type of property value with type of property");
             throw;
         }
 
-        // 3. Construct expression tree
+        // Construct expression tree for where clause
         var eqe = Expression.Equal(
             mba.Body,
             Expression.Constant(value, mba.ReturnType));
         var expression = Expression.Lambda(eqe, mba.Parameters[0]);
 
-        // 4. Construct new query
+        // Construct new query with where clause
         MethodCallExpression resultExpression = Expression.Call(
             null,
             GetMethodInfo(Queryable.Where, source, (Expression<Func<T, bool>>)null),
@@ -111,6 +160,16 @@ public static class DbSetExtensions
         return source.Provider.CreateQuery<T>(resultExpression);
     }
 
+    /// <summary>
+    /// Gets the MethodInfo for a method.
+    /// </summary>
+    /// <typeparam name="T1">Type of first parameter.</typeparam>
+    /// <typeparam name="T2">Type of second parameter.</typeparam>
+    /// <typeparam name="T3">Type of third parameter.</typeparam>
+    /// <param name="f">Method to get MethodInfo for.</param>
+    /// <param name="unused1">Unused parameter.</param>
+    /// <param name="unused2">Unused parameter.</param>
+    /// <returns>MethodInfo for method.</returns>
     private static MethodInfo GetMethodInfo<T1, T2, T3>(Func<T1, T2, T3> f, T1 unused1, T2 unused2)
     {
         return f.Method;

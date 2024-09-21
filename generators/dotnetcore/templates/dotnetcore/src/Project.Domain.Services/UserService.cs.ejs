@@ -40,15 +40,50 @@ using LanguageExt;
 
 namespace <%= namespace %>.Domain.Services;
 
+/// <summary>
+/// Service for managing users.
+/// </summary>
 public class UserService : IUserService
 {
+    /// <summary>
+    /// Accessor for the HTTP context.
+    /// </summary>
     private readonly IHttpContextAccessor _httpContextAccessor;
+    
+    /// <summary>
+    /// Logger for the user service.
+    /// </summary>
     private readonly ILogger<UserService> _log;
+    
+    /// <summary>
+    /// Hasher for user passwords.
+    /// </summary>
     private readonly IPasswordHasher<User> _passwordHasher;
+    
+    /// <summary>
+    /// Manager for user roles.
+    /// </summary>
     private readonly RoleManager<Role> _roleManager;
+    
+    /// <summary>
+    /// Manager for users.
+    /// </summary>
     private readonly UserManager<User> _userManager;
+    
+    /// <summary>
+    /// Database context for the application.
+    /// </summary>
     private readonly ApplicationDatabaseContext _databaseContext;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UserService"/> class.
+    /// </summary>
+    /// <param name="log">The logger for the user service.</param>
+    /// <param name="userManager">The manager for users.</param>
+    /// <param name="passwordHasher">The hasher for user passwords.</param>
+    /// <param name="roleManager">The manager for user roles.</param>
+    /// <param name="httpContextAccessor">The accessor for the HTTP context.</param>
+    /// <param name="databaseContext">The database context for the application.</param>
     public UserService(ILogger<UserService> log, UserManager<User> userManager,
         IPasswordHasher<User> passwordHasher, RoleManager<Role> roleManager,
         IHttpContextAccessor httpContextAccessor, ApplicationDatabaseContext databaseContext)
@@ -61,6 +96,12 @@ public class UserService : IUserService
         _databaseContext = databaseContext;
     }
 
+    /// <summary>
+    /// Creates a new user.
+    /// </summary>
+    /// <param name="userToCreate">The user to create.</param>
+    /// <returns>The created user.</returns>
+    /// <exception cref="ArgumentException">Thrown if the position ID is invalid.</exception>
     public virtual async Task<User> CreateUser(AddUserDto userToCreate)
     {
     
@@ -83,6 +124,7 @@ public class UserService : IUserService
             PasswordHash = _passwordHasher.HashPassword(null, userToCreate.Password),
             Activated = userToCreate.Activated,
             LangKey = userToCreate.LangKey,
+            ImageUrl = userToCreate.ImageUrl,
             Position = position
         };
     
@@ -91,6 +133,11 @@ public class UserService : IUserService
         return user;
     }
 
+    /// <summary>
+    /// Retrieves all managed users.
+    /// </summary>
+    /// <param name="pageable">The pagination options.</param>
+    /// <returns>A page of managed users.</returns>
     public async Task<IPage<User>> GetAllManagedUsers(IPageable pageable)
     {
         <%_ if (databaseType === 'mongodb') { _%>
@@ -106,6 +153,11 @@ public class UserService : IUserService
         <%_ } _%>
     }
 
+    /// <summary>
+    /// Retrieves all public users.
+    /// </summary>
+    /// <param name="pageable">The pagination options.</param>
+    /// <returns>A page of public users.</returns>
     public async Task<IPage<User>> GetAllPublicUsers(IPageable pageable)
     {
         <%_ if (databaseType === 'mongodb') { _%>
@@ -115,11 +167,16 @@ public class UserService : IUserService
         return users;
         <%_ } else { _%>
         return await _userManager.Users
-            .Where(it => it.Activated == true && !string.IsNullOrEmpty(it.Id))
+            .Where(it => it.Activated == true && !string.IsNullOrEmpty(it.Id.ToString()))
             .UsePageableAsync(pageable);
         <%_ } _%>
     }
 
+    /// <summary>
+    /// Retrieves a user by login.
+    /// </summary>
+    /// <param name="login">The user's login.</param>
+    /// <returns>The user with the specified login.</returns>
     public async Task<User> GetByLogin(string login)
     {
         <%_ if (databaseType === 'mongodb') { _%>
@@ -137,27 +194,39 @@ public class UserService : IUserService
         <%_ } _%>
     }
 
+    /// <summary>
+    /// Updates a user.
+    /// </summary>
+    /// <param name="userToUpdate">The user to update.</param>
+    /// <returns>The updated user.</returns>
     public virtual async Task<User> UpdateUser(UpdateUserDto userToUpdate)
-        {
-            //TODO use Optional
-            var user = await _userManager.FindByIdAsync(userToUpdate.Id);
-            user.Login = userToUpdate.Login.ToLower();
-            user.UserName = userToUpdate.Login.ToLower();
-            user.FirstName = userToUpdate.FirstName;
-            user.LastName = userToUpdate.LastName;
-            user.Email = userToUpdate.Email;
-            user.Activated = userToUpdate.Activated;
-            user.LangKey = userToUpdate.LangKey;
-            user.PositionId = userToUpdate.PositionId;
-            user.Position= await _databaseContext.Positions
-                                    .Include(p => p.PositionPermissions)
-                                    .ThenInclude(pp => pp.Permission)
-                                    .FirstOrDefaultAsync(p => p.Id == userToUpdate.PositionId);
-            await _userManager.UpdateAsync(user);
-        
-            return user;
-        }
+    {
+        //TODO use Optional
+        var user = await _userManager.FindByIdAsync(userToUpdate.Id.ToString());
+        user.Login = userToUpdate.Login.ToLower();
+        user.UserName = userToUpdate.Login.ToLower();
+        user.FirstName = userToUpdate.FirstName;
+        user.LastName = userToUpdate.LastName;
+        user.Email = userToUpdate.Email;
+        user.Activated = userToUpdate.Activated;
+        user.LangKey = userToUpdate.LangKey;
+        user.ImageUrl = userToUpdate.ImageUrl;
+        user.PositionId = userToUpdate.PositionId;
+        user.Position= await _databaseContext.Positions
+                                .Include(p => p.PositionPermissions)
+                                .ThenInclude(pp => pp.Permission)
+                                .FirstOrDefaultAsync(p => p.Id == userToUpdate.PositionId);
+        await _userManager.UpdateAsync(user);
+    
+        return user;
+    }
 
+    /// <summary>
+    /// Completes a password reset.
+    /// </summary>
+    /// <param name="newPassword">The new password.</param>
+    /// <param name="key">The reset key.</param>
+    /// <returns>The user with the updated password.</returns>
     public virtual async Task<User> CompletePasswordReset(string newPassword, string key)
     {
         _log.LogDebug($"Reset user password for reset key {key}");
@@ -175,6 +244,11 @@ public class UserService : IUserService
         return user;
     }
 
+    /// <summary>
+    /// Requests a password reset.
+    /// </summary>
+    /// <param name="mail">The user's email.</param>
+    /// <returns>The user with the reset key.</returns>
     public virtual async Task<User> RequestPasswordReset(string mail)
     {
         var user = await _userManager.FindByEmailAsync(mail);
@@ -185,6 +259,13 @@ public class UserService : IUserService
         return user;
     }
 
+    /// <summary>
+    /// Changes a user's password.
+    /// </summary>
+    /// <param name="currentClearTextPassword">The current password.</param>
+    /// <param name="newPassword">The new password.</param>
+    /// <returns></returns>
+    /// <exception cref="InvalidPasswordException"></exception>
     public virtual async Task ChangePassword(string currentClearTextPassword, string newPassword)
     {
         var userName = _userManager.GetUserName(_httpContextAccessor.HttpContext.User);
@@ -204,6 +285,11 @@ public class UserService : IUserService
         }
     }
 
+    /// <summary>
+    /// Activates a user registration.
+    /// </summary>
+    /// <param name="key">The activation key.</param>
+    /// <returns>The activated user.</returns>
     public virtual async Task<User> ActivateRegistration(string key)
     {
         _log.LogDebug($"Activating user for activation key {key}");
@@ -222,7 +308,14 @@ public class UserService : IUserService
         return user;
     }
 
-
+    /// <summary>
+    /// Registers a new user.
+    /// </summary>
+    /// <param name="userToRegister">The user to register.</param>
+    /// <param name="password">The password.</param>
+    /// <returns>The registered user.</returns>
+    /// <exception cref="LoginAlreadyUsedException"></exception>
+    /// <exception cref="EmailAlreadyUsedException"></exception>
     public virtual async Task<User> RegisterUser(User userToRegister, string password)
     {
         var existingUser = await _userManager.FindByNameAsync(userToRegister.Login.ToLower());
@@ -259,7 +352,15 @@ public class UserService : IUserService
         _log.LogDebug($"Created Information for User: {newUser}");
         return newUser;
     }
-
+    /// <summary>
+    /// Updates a user's information.
+    /// </summary>
+    /// <param name="firstName">The first name.</param>
+    /// <param name="lastName">The last name.</param>
+    /// <param name="email">The email.</param>
+    /// <param name="langKey">The language key.</param>
+    /// <param name="imageUrl">The image URL.</param>
+    /// <returns></returns>
     public virtual async Task UpdateUser(string firstName, string lastName, string email, string langKey, string imageUrl)
     {
         var userName = _userManager.GetUserName(_httpContextAccessor.HttpContext.User);
@@ -276,6 +377,10 @@ public class UserService : IUserService
         }
     }
 
+    /// <summary>
+    /// Gets the current user with their roles.
+    /// </summary>
+    /// <returns>The user with their roles.</returns>
     public virtual async Task<User> GetUserWithUserRoles()
     {
         var userName = _userManager.GetUserName(_httpContextAccessor.HttpContext.User);
@@ -283,12 +388,19 @@ public class UserService : IUserService
         return await GetUserWithUserRolesByName(userName);
     }
 
-
+    /// <summary>
+    /// Gets all authorities.
+    /// </summary>
+    /// <returns>A list of authorities.</returns>
     public virtual IEnumerable<string> GetAuthorities()
     {
         return _roleManager.Roles.Select(it => it.Name).AsQueryable();
     }
-
+    /// <summary>
+    /// Deletes a user.
+    /// </summary>
+    /// <param name="id">The user ID.</param>
+    /// <returns></returns>
     public virtual async Task DeleteUser(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
@@ -302,6 +414,11 @@ public class UserService : IUserService
         }
     }
 
+    /// <summary>
+    /// Gets a user with their roles by name.
+    /// </summary>
+    /// <param name="name">The user name.</param>
+    /// <returns>The user with their roles.</returns>
     private async Task<User> GetUserWithUserRolesByName(string name)
     {
         <%_ if (databaseType === 'mongodb') { _%>
@@ -319,6 +436,11 @@ public class UserService : IUserService
         <%_ } _%>
     }
 
+    /// <summary>
+    /// Removes a non-activated user.
+    /// </summary>
+    /// <param name="existingUser">The existing user.</param>
+    /// <returns>True if the user was removed, false otherwise.</returns>
     private async Task<bool> RemoveNonActivatedUser(User existingUser)
     {
         if (existingUser.Activated) return false;
@@ -327,6 +449,12 @@ public class UserService : IUserService
         return true;
     }
 
+    /// <summary>
+    /// Creates user roles.
+    /// </summary>
+    /// <param name="user">The user.</param>
+    /// <param name="roles">The roles.</param>
+    /// <returns></returns>
     private async Task CreateUserRoles(User user, IEnumerable<string> roles)
     {
         if (roles == null || !roles.Any()) return;
@@ -338,6 +466,12 @@ public class UserService : IUserService
         <%_ } _%>
     }
 
+    /// <summary>
+    /// Updates user roles.
+    /// </summary>
+    /// <param name="user">The user.</param>
+    /// <param name="roles">The roles.</param>
+    /// <returns></returns>
     private async Task UpdateUserRoles(User user, IEnumerable<string> roles)
     {
         var userRoles = await _userManager.GetRolesAsync(user);
@@ -373,6 +507,11 @@ public class UserService : IUserService
     }
     <%_ } else { _%>
 
+    /// <summary>
+    /// Deletes a user's roles.
+    /// </summary>
+    /// <param name="user">The user.</param>
+    /// <returns></returns>
     private async Task DeleteUserRoles(User user)
     {
         var roles = await _userManager.GetRolesAsync(user);
@@ -380,6 +519,10 @@ public class UserService : IUserService
     }
     <%_ } _%>
 
+    /// <summary>
+    /// Gets the connected user.
+    /// </summary>
+    /// <returns>The connected user.</returns>
     public async Task<UserDetailDto> GetConnectedUser()
     {
         var user = _httpContextAccessor.HttpContext?.User;
@@ -401,7 +544,6 @@ public class UserService : IUserService
                     LastName = u.LastName,
                     Activated = u.Activated,
                     Email = u.Email,
-                    CreatedBy = u.CreatedBy,
                     LangKey = u.LangKey,
                     Login = u.Login,
                     Position = new PositionDto
@@ -419,5 +561,15 @@ public class UserService : IUserService
     
         // Create and return the User object with Position included
         return currentUser;
+    }
+
+    /// <summary>
+    /// Checks if a position is assigned to a user.
+    /// </summary>
+    /// <param name="positionId">The position ID.</param>
+    /// <returns>True if the position is assigned, false otherwise.</returns>
+    public async Task<bool> IsPositionAssignedToUserAsync(int positionId)
+    {
+        return await _databaseContext.Users.AnyAsync(u => u.PositionId == positionId && u.DeletedAt == null);
     }
 }

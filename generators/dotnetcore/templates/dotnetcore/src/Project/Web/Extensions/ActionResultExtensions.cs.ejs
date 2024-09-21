@@ -17,8 +17,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace <%= namespace %>.Web.Extensions;
 
+/// <summary>
+/// Extensions for ActionResult.
+/// </summary>
 public static class ActionResultExtensions
 {
+    /// <summary>
+    /// Adds headers to an ActionResult.
+    /// </summary>
+    /// <param name="receiver">ActionResult to add headers to.</param>
+    /// <param name="headers">Headers to add.</param>
+    /// <returns>ActionResult with added headers.</returns>
     public static ActionResult WithHeaders(this ActionResult receiver, IHeaderDictionary headers)
     {
         return new ActionResultWithHeaders(receiver, headers);

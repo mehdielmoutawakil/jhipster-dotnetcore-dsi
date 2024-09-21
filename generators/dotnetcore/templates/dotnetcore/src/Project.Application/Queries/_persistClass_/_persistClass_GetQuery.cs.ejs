@@ -27,7 +27,13 @@ using MediatR;
 
 namespace <%= namespace %>.Application.Queries;
 
+/// <summary>
+/// <%= pascalizedEntityClass %> Get request
+/// </summary>
 public class <%= pascalizedEntityClass %>GetQuery : IRequest<<%= hasDto ? asDto(pascalizedEntityClass) : pascalizedEntityClass %>>
 {
+    /// <summary>
+    /// <%= pascalizedEntityClass %> Id
+    /// </summary>
     public <%= primaryKeyType %> Id { get; set; }
 }

@@ -29,12 +29,19 @@ using <%= namespace %>.Infrastructure.Data.Extensions;
 
 namespace <%= namespace %>.Infrastructure.Data.Repositories
 {
+    /// <summary>
+    /// Repository for <%= pascalizedEntityClass %> entities.
+    /// </summary>
     <%_ if (databaseType == 'mongodb') { _%>
     public class <%= pascalizedEntityClass %>Repository : MongoGenericRepository<<%= pascalizedEntityClass %>, <%= primaryKeyType %>>, I<%= pascalizedEntityClass %>Repository
     <%_ } else { _%>
     public class <%= pascalizedEntityClass %>Repository : GenericRepository<<%= pascalizedEntityClass %>, <%= primaryKeyType %>>, I<%= pascalizedEntityClass %>Repository
     <%_ } _%>
     {
+        /// <summary>
+        /// Initializes a new instance of the <%= pascalizedEntityClass %>Repository class.
+        /// </summary>
+        /// <param name="context">UnitOfWork instance.</param>
         <%_ if (databaseType == 'mongodb') { _%>
         public <%= pascalizedEntityClass %>Repository(IMongoDatabaseContext context) : base(context)
         {
@@ -43,8 +50,35 @@ namespace <%= namespace %>.Infrastructure.Data.Repositories
         public <%= pascalizedEntityClass %>Repository(IUnitOfWork context) : base(context)
         {
         }
+
+        /// <summary>
+        /// Gets a <%= pascalizedEntityClass %> by its ID.
+        /// </summary>
+        /// <param name="id">ID of <%= pascalizedEntityClass %> to retrieve.</param>
+        /// <returns><%= pascalizedEntityClass %> entity.</returns>
+        public async Task<<%= pascalizedEntityClass %>> GetByIdAsync(<%= primaryKeyType %> id)
+        {
+            return await _context.Set<<%= pascalizedEntityClass %>>().FindAsync(id);
+        }
+        
+        /// <summary>
+        /// Updates a <%= pascalizedEntityClass %> entity.
+        /// </summary>
+        /// <param name="<%= camelCasedEntityClass %>"><%= pascalizedEntityClass %> entity to update.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        public async Task UpdateAsync(<%= pascalizedEntityClass %> <%= camelCasedEntityClass %>)
+        {
+            _context.Set<<%= pascalizedEntityClass %>>().Update(<%= camelCasedEntityClass %>);
+            await _context.SaveChangesAsync();
+        }
         <%_ } _%>
 
+        
+        /// <summary>
+        /// Creates or updates a <%= pascalizedEntityClass %> entity.
+        /// </summary>
+        /// <param name="<%= camelCasedEntityClass %>"><%= pascalizedEntityClass %> entity to create or update.</param>
+        /// <returns><%= pascalizedEntityClass %> entity.</returns>
         <%_ if (databaseType != 'mongodb' && relationships.length != 0) { _%>
         public override async Task<<%= pascalizedEntityClass %>> CreateOrUpdateAsync(<%= pascalizedEntityClass %> <%= camelCasedEntityClass %>)
         {

@@ -5,10 +5,36 @@ using Microsoft.Extensions.Hosting;
 
 namespace <%= namespace %>;
 
+/// <summary>
+/// Interface for custom startup logic.
+/// </summary>
 public interface IStartup
 {
+    /// <summary>
+    /// Configures the application's services and configuration.
+    /// </summary>
+    /// <param name="configuration">Application configuration.</param>
+    /// <param name="services">Service collection.</param>
     void Configure(IConfiguration configuration, IServiceCollection services);
+
+    /// <summary>
+    /// Configures the application's services.
+    /// </summary>
+    /// <param name="services">Service collection.</param>
     void ConfigureServices(IServiceCollection services, IHostEnvironment environment);
+    
+    /// <summary>
+    /// Configures the application's middleware pipeline.
+    /// </summary>
+    /// <param name="app">Application builder.</param>
+    /// <param name="environment">Host environment.</param>
+    /// <param name="environment">Host environment.</param>
     void ConfigureMiddleware(IApplicationBuilder app, IHostEnvironment environment);
+    
+    /// <summary>
+    /// Configures the application's endpoints.
+    /// </summary>
+    /// <param name="app">Application builder.</param>
+    /// <param name="environment">Host environment.</param>
     void ConfigureEndpoints(IApplicationBuilder app, IHostEnvironment environment);
 }

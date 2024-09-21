@@ -21,7 +21,14 @@ using MediatR;
 
 namespace <%= namespace %>.Application.Queries;
 
+/// <summary>
+/// User get request 
+/// </summary>
 public class UserGetQuery : IRequest<UserDetailDto>
 {
-    public string Id { get; set; }
+
+    /// <summary>
+    /// User Id
+    /// </summary>
+    public int Id { get; set; }
 }

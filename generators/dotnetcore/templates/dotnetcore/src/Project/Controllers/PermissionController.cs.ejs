@@ -15,13 +15,21 @@ namespace <%= namespace %>.Controllers
         private readonly ILogger<PermissionController> _log;
         private readonly IMediator _mediator;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="log"></param>
+        /// <param name="mediator"></param>
         public PermissionController(ILogger<PermissionController> log, IMediator mediator)
         {
             _log = log;
             _mediator = mediator;
         }
 
-
+        /// <summary>
+        /// Get List of Permissions
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("")]
         public async Task<ActionResult<List<Permission>>> GetNavigationTree()
         {

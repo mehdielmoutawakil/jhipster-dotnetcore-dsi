@@ -41,8 +41,16 @@ using <%= namespace %>.Domain.Services;
 
 namespace <%= namespace %>;
 
+/// <summary>
+/// Application startup class.
+/// </summary>
 public class Startup : IStartup
 {
+    /// <summary>
+    /// Configures the application's services and configuration.
+    /// </summary>
+    /// <param name="configuration">Application configuration.</param>
+    /// <param name="services">Service collection.</param>
     public virtual void Configure(IConfiguration configuration, IServiceCollection services)
     {
         services
@@ -57,6 +65,11 @@ public class Startup : IStartup
         AddDatabase(configuration, services);
     }
 
+    /// <summary>
+    /// Configures the application's services.
+    /// </summary>
+    /// <param name="services">Service collection.</param>
+    /// <param name="environment">Host environment.</param>
     public virtual void ConfigureServices(IServiceCollection services, IHostEnvironment environment)
     {
         <%_ if (cqrsEnabled) { _%>
@@ -83,6 +96,11 @@ public class Startup : IStartup
         <%_ } _%>
     }
 
+    /// <summary>
+    /// Configures the application's middleware pipeline.
+    /// </summary>
+    /// <param name="app">Application builder.</param>
+    /// <param name="environment">Host environment.</param>
     public virtual void ConfigureMiddleware(IApplicationBuilder app, IHostEnvironment environment)
     {
         IServiceProvider serviceProvider = app.ApplicationServices;
@@ -101,6 +119,11 @@ public class Startup : IStartup
             <%_ } _%>
     }
 
+    /// <summary>
+    /// Configures the application's endpoints.
+    /// </summary>
+    /// <param name="app">Application builder.</param>
+    /// <param name="environment">Host environment.</param>
     public virtual void ConfigureEndpoints(IApplicationBuilder app, IHostEnvironment environment)
     {
         app
@@ -108,6 +131,11 @@ public class Startup : IStartup
             .UseApplicationWeb(environment);
     }
 
+    /// <summary>
+    /// Adds database configuration to the service collection.
+    /// </summary>
+    /// <param name="configuration">Application configuration.</param>
+    /// <param name="services">Service collection.</param>
     protected virtual void AddDatabase(IConfiguration configuration, IServiceCollection services)
     {
         services.AddDatabaseModule(configuration);

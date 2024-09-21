@@ -1,0 +1,58 @@
+﻿using MediatR;
+using <%= namespace %>.Domain.Repositories;
+using <%= namespace %>.Domain.Repositories.Interfaces;
+using <%= namespace %>.Domain.Services.Interfaces;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace <%= namespace %>.Application.Commands
+{
+    /// <summary>
+    /// Position delete class handler
+    /// </summary>
+    public class PositionDeleteCommandHandler : IRequestHandler<PositionDeleteCommand, bool>
+    {
+        private readonly IPositionRepository _positionRepository;
+        private readonly IUserService _userService;
+    
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="positionRepository"></param>
+        /// <param name="userService"></param>
+        public PositionDeleteCommandHandler(IPositionRepository positionRepository, IUserService userService)
+        {
+            _positionRepository = positionRepository;
+            _userService = userService;
+        }
+    
+        /// <summary>
+        /// Handler method
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public async Task<bool> Handle(PositionDeleteCommand request, CancellationToken cancellationToken)
+        {
+            // Check if the position is assigned to any user
+            var isPositionAssigned = await _userService.IsPositionAssignedToUserAsync(request.PositionId);
+            if (isPositionAssigned)
+            {
+                return false; // Cannot delete, position is assigned to a user
+            }
+    
+            // Proceed with deletion
+            var position = await _positionRepository.GetOneAsync(request.PositionId);
+            if (position == null)
+            {
+                throw new ArgumentException("Position not found");
+            }
+    
+            await _positionRepository.DeleteByIdAsync(position.Id);
+            await _positionRepository.SaveChangesAsync();
+            return true;
+        }
+    }
+}

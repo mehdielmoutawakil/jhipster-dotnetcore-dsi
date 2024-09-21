@@ -19,8 +19,17 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace <%= namespace %>.Configuration;
 
+/// <summary>
+/// App settings configuration module.
+/// </summary>
 public static class AppSettingsConfiguration
 {
+    /// <summary>
+    /// Adds app settings module to the service collection.
+    /// </summary>
+    /// <param name="services">Service collection.</param>
+    /// <param name="configuration">Application configuration.</param>
+    /// <returns>Service collection with app settings module added.</returns>
     public static IServiceCollection AddAppSettingsModule(this IServiceCollection services, IConfiguration configuration)
     {
         // Use this to load settings from appSettings file

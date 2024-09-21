@@ -14,53 +14,147 @@
 -%>
 namespace <%= namespace %>.Infrastructure.Configuration;
 
+/// <summary>
+/// Security settings for the application.
+/// </summary>
 public class SecuritySettings
 {
+    /// <summary>
+    /// Authentication settings.
+    /// </summary>
     public Authentication Authentication { get; set; }
+
+    /// <summary>
+    /// CORS settings.
+    /// </summary>
     public Cors Cors { get; set; }
+
+    /// <summary>
+    /// Flag to enforce HTTPS.
+    /// </summary>
     public bool EnforceHttps { get; set; }
 }
 
 <%_ if (authenticationType === 'jwt') { _%>
+/// <summary>
+/// Authentication settings.
+/// </summary>
 public class Authentication
 {
+    /// <summary>
+    /// JWT settings.
+    /// </summary>
     public Jwt Jwt { get; set; }
 }
 
+/// <summary>
+/// JWT settings.
+/// </summary>
 public class Jwt
 {
+    /// <summary>
+    /// Secret key for JWT.
+    /// </summary>
     public string Secret { get; set; }
+
+    /// <summary>
+    /// Base64 encoded secret key for JWT.
+    /// </summary>
     public string Base64Secret { get; set; }
+
+    /// <summary>
+    /// Token validity in seconds.
+    /// </summary>
     public int TokenValidityInSeconds { get; set; }
+
+    /// <summary>
+    /// Token validity in seconds for remember me.
+    /// </summary>
     public int TokenValidityInSecondsForRememberMe { get; set; }
 }
 
 <%_ } else { _%>
+/// <summary>
+/// Authentication settings.
+/// </summary>
 public class Authentication
 {
+    /// <summary>
+    /// OAuth2 settings.
+    /// </summary>
     public OAuth2 OAuth2 { get; set; }
 }
 
+/// <summary>
+/// OAuth2 settings.
+/// </summary>
 public class OAuth2
 {
+    /// <summary>
+    /// OAuth2 provider settings.
+    /// </summary>
     public Provider Provider { get; set; }
 }
 
+/// <summary>
+/// OAuth2 provider settings.
+/// </summary>
 public class Provider
 {
+    /// <summary>
+    /// Issuer URI for OAuth2 provider.
+    /// </summary>
     public string IssuerUri { get; set; }
+
+    /// <summary>
+    /// Logout URI for OAuth2 provider.
+    /// </summary>
     public string LogOutUri { get; set; }
+
+    /// <summary>
+    /// Client ID for OAuth2 provider.
+    /// </summary>
     public string ClientId { get; set; }
+
+    /// <summary>
+    /// Client secret for OAuth2 provider.
+    /// </summary>
     public string ClientSecret { get; set; }
 }
 <%_ } _%>
 
+/// <summary>
+/// CORS settings.
+/// </summary>
 public class Cors
 {
+    /// <summary>
+    /// Allowed origins for CORS.
+    /// </summary>
     public string AllowedOrigins { get; set; }
+
+    /// <summary>
+    /// Allowed methods for CORS.
+    /// </summary>
     public string AllowedMethods { get; set; }
+
+    /// <summary>
+    /// Allowed headers for CORS.
+    /// </summary>
     public string AllowedHeaders { get; set; }
+
+    /// <summary>
+    /// Exposed headers for CORS.
+    /// </summary>
     public string ExposedHeaders { get; set; }
+
+    /// <summary>
+    /// Flag to allow credentials for CORS.
+    /// </summary>
     public bool AllowCredentials { get; set; }
+
+    /// <summary>
+    /// Maximum age for CORS.
+    /// </summary>
     public int MaxAge { get; set; }
 }

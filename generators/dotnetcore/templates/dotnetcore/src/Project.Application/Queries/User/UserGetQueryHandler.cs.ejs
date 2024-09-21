@@ -32,12 +32,22 @@ using <%= namespace %>.Infrastructure.Data;
 
 namespace <%= namespace %>.Application.Queries;
 
+
+/// <summary>
+/// User Get request class handler
+/// </summary>
 public class UserGetQueryHandler : IRequestHandler<UserGetQuery, UserDetailDto>
 {
     private readonly UserManager<User> _userManager;
     private readonly IMapper _mapper;
     private readonly ApplicationDatabaseContext _databaseContext;
 
+    /// <summary>
+    /// Parameterized constructor
+    /// </summary>
+    /// <param name="userManager"></param>
+    /// <param name="mapper"></param>
+    /// <param name="applicationDatabase"></param>
     public UserGetQueryHandler(UserManager<User> userManager, IMapper mapper, ApplicationDatabaseContext applicationDatabase)
     {
         _userManager = userManager;
@@ -45,6 +55,12 @@ public class UserGetQueryHandler : IRequestHandler<UserGetQuery, UserDetailDto>
         _databaseContext = applicationDatabase;
     }
 
+    /// <summary>
+    /// handler method
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async Task<UserDetailDto> Handle(UserGetQuery request, CancellationToken cancellationToken)
     {
         <%_ if (databaseType === 'mongodb') { _%>
@@ -54,6 +70,7 @@ public class UserGetQueryHandler : IRequestHandler<UserGetQuery, UserDetailDto>
             return _mapper.Map<UserDetailDto>(result);
         <%_ } else { _%>
             UserDetailDto currentUser = await _databaseContext.Users
+                .Where(u => u.Id == request.Id)
                 .Select(u => new UserDetailDto
                 {
                     Id = u.Id,
@@ -61,21 +78,22 @@ public class UserGetQueryHandler : IRequestHandler<UserGetQuery, UserDetailDto>
                     LastName = u.LastName,
                     Activated = u.Activated,
                     Email = u.Email,
-                    CreatedBy = u.CreatedBy,
                     LangKey = u.LangKey,
                     Login = u.Login,
-                    Position = new PositionDto
+                    ImageUrl = u.ImageUrl,
+                    Position = u.Position != null ? new PositionDto
                     {
                         Id = u.Position.Id,
                         Name = u.Position.Name,
                         IsAdmin = u.Position.IsAdmin,
                         Permissions = u.Position.PositionPermissions
-                        .Select(pp => pp.Permission.Name)
-                        .ToArray()
-                    }
+                            .Select(pp => pp.Permission.Name)
+                            .ToArray()
+                    } : null
                 })
-                .FirstOrDefaultAsync(u => u.Id == request.Id);
-                return currentUser;
+                .AsNoTracking()
+                .FirstOrDefaultAsync(cancellationToken);
+            return currentUser;
         <%_ } _%>
     }
 }

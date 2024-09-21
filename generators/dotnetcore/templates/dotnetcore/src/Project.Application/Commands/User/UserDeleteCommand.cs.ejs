@@ -21,7 +21,13 @@ using MediatR;
 
 namespace <%= namespace %>.Application.Commands;
 
+/// <summary>
+/// User delete request
+/// </summary>
 public class UserDeleteCommand : IRequest<Unit>
 {
+    /// <summary>
+    /// User Id
+    /// </summary>
     public string Id { get; set; }
 }

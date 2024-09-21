@@ -1,10 +1,28 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace <%= namespace %>.Dto;
 
 public class PositionDto
 {
-    public int Id { get; set; }
+    /// <summary>
+    /// Position Id
+    /// </summary>
+    public int? Id { get; set; }
+
+    /// <summary>
+    /// Position Name
+    /// </summary>
+    [Required]
     public string Name { get; set; }
+
+    /// <summary>
+    /// Position IsAdmin
+    /// </summary>
+    [Required]
     public bool IsAdmin { get; set; }
 
-    public string[] Permissions { get; set; }
+    /// <summary>
+    /// Position Permissions
+    /// </summary>
+    public string?[] Permissions { get; set; }
 }

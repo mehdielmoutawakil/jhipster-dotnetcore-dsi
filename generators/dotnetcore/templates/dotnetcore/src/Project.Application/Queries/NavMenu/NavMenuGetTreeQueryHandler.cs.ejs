@@ -12,17 +12,33 @@ using <%= namespace %>.Infrastructure.Data;
 
 namespace <%= namespace %>.Application.Queries
 {
+    
+    /// <summary>
+    /// NavMenu get tree request class handler
+    /// </summary>
     public class NavMenuGetTreeQueryHandler : IRequestHandler<NavMenuGetTreeQuery, List<NavMenu>>
     {
         private readonly ApplicationDatabaseContext _context;
         private readonly UserService _userService;
 
+        /// <summary>
+        /// Parameterized constructor
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="userManager"></param>
+        /// <param name="userService"></param>
         public NavMenuGetTreeQueryHandler(ApplicationDatabaseContext context, UserManager<User> userManager, UserService userService)
         {
             _context = context;
             _userService = userService;
         }
 
+        /// <summary>
+        /// Handler method
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<List<NavMenu>> Handle(NavMenuGetTreeQuery request, CancellationToken cancellationToken)
         {
             var navigation = await _context.NavMenus.ToListAsync(cancellationToken);
@@ -40,6 +56,13 @@ namespace <%= namespace %>.Application.Queries
             }
         }
 
+        /// <summary>
+        /// Specified method to handle admin NavMenu tree
+        /// </summary>
+        /// <param name="navigation"></param>
+        /// <param name="parentId"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
         private async Task<List<NavMenu>> BuildAdminNavigationTree(List<NavMenu> navigation, long? parentId, UserDetailDto user)
         {
             var children = new List<NavMenu>();
@@ -62,6 +85,13 @@ namespace <%= namespace %>.Application.Queries
             return children;
         }
 
+        /// <summary>
+        /// Specified method to handle non admin NavMenu tree
+        /// </summary>
+        /// <param name="navigation"></param>
+        /// <param name="parentId"></param>
+        /// <param name="positionPermissions"></param>
+        /// <returns></returns>
         private async Task<List<NavMenu>> BuildNavigationTree(List<NavMenu> navigation, long? parentId, IEnumerable<string> positionPermissions)
         {
             var children = new List<NavMenu>();

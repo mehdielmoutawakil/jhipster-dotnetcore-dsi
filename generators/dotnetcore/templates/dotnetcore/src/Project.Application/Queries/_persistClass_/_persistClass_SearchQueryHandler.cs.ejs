@@ -2,82 +2,102 @@
 // The .NET Foundation licenses this
  
 using MediatR;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.IO;
 using <%= namespace %>.Domain.Entities;
 using <%= namespace %>.Infrastructure.Data;
+using System.Runtime.CompilerServices;
+using Serilog;
+using Application.Utility;
+using AutoMapper;
+using <%= namespace %>.Dto;
+using System.Collections.Generic;
 
 namespace <%= namespace %>.Application.Queries
 {
-    class <%= pascalizedEntityClass %>SearchQueryHandler : IRequestHandler<<%= pascalizedEntityClass %>SearchQuery, PaginatedResult<<%= pascalizedEntityClass %>>>
+    /// <summary>
+    /// <%= pascalizedEntityClass %> Search request class handler
+    /// </summary>
+    class <%= pascalizedEntityClass %>SearchQueryHandler : IRequestHandler<<%= pascalizedEntityClass %>SearchQuery, PaginatedResult<<%= pascalizedEntityClass %>Dto>>
     {
         private readonly ApplicationDatabaseContext _context;
+        private readonly IMapper _mapper;
+        
+        /// <summary>
+        /// Variable used to get API method name, in async calls
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
 
-        public <%= pascalizedEntityClass %>SearchQueryHandler(ApplicationDatabaseContext context)
+        /// <summary>
+        /// <%= pascalizedEntityClass %>SearchQueryHandler parameterized constructor
+        /// </summary>
+        /// <param name="context"></param>
+        public <%= pascalizedEntityClass %>SearchQueryHandler(ApplicationDatabaseContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        public async Task<PaginatedResult<<%= pascalizedEntityClass %>>> Handle(<%= pascalizedEntityClass %>SearchQuery request, CancellationToken cancellationToken)
+        /// <summary>
+        /// Handler Method
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public async Task<PaginatedResult<<%= pascalizedEntityClass %>Dto>> Handle(<%= pascalizedEntityClass %>SearchQuery request, CancellationToken cancellationToken)
         {
-            IQueryable<<%= pascalizedEntityClass %>> query =  _context.<%= pluralize(pascalizedEntityClass) %>.AsQueryable();
-
-            // Apply filters
-            foreach (var filter in request.Filters)
+            try
             {
-                query = FilterHelper.ApplyFilter(query, filter);
-            }
+                IQueryable<<%= pascalizedEntityClass %>> query =  _context.<%= pluralize(pascalizedEntityClass) %>.AsQueryable();
 
-            // Apply sorting
-            if (!string.IsNullOrWhiteSpace(request.Sort))
-            {
-                var sortParams = request.Sort.Split(',');
-                if (sortParams.Length == 2)
+                // Apply filters
+                foreach (var filter in request.Filters)
                 {
-                    var sortField = sortParams[0];
-                    var sortDirection = sortParams[1].ToLower();
-
-                    if (sortDirection == "asc")
-                    {
-                        query = query.OrderByDynamic(sortField, true);
-                    }
-                    else if (sortDirection == "desc")
-                    {
-                        query = query.OrderByDynamic(sortField, false);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException($"Unsupported sort direction: {sortDirection}");
-                    }
+                    query = FilterHelper.ApplyFilter(query, filter);
                 }
-                else
+
+                // Get total data
+                var totalCount = await query.CountAsync(cancellationToken);
+                
+                // Apply sorting
+                query = SortHelper.ApplySort(query, request.Sort);
+                
+                // Apply pagination
+                query = PagingHelper.ApplyPaging(query, request.PageNumber, request.PageSize);
+                
+                // Get data
+                var items = await query
+                    .Where(<%= camelCasedEntityClass %> => <%= camelCasedEntityClass %>.DeletedAt == null)
+                <%_ relationships.forEach( relationship => {
+                    if (relationship.relationshipType === 'many-to-one' || relationship.relationshipType === 'one-to-one') { _%>
+                    .Include(<%= camelCasedEntityClass %> => <%= camelCasedEntityClass %>.<%= relationship.relationshipFieldNamePascalized %>)
+                    <%_ } else if (relationship.relationshipType === 'many-to-many' && relationship.ownerSide) { _%>
+                    .Include(<%= camelCasedEntityClass %> => <%= camelCasedEntityClass %>.<%= relationship.relationshipFieldNamePascalizedPlural %>)
+                    <%_ }
+                    }); _%>
+                    .AsNoTracking()
+                    .ToListAsync(cancellationToken);
+
+                var itemsDto = _mapper.Map<List<<%= pascalizedEntityClass %>Dto>>(items);
+
+                return new PaginatedResult<<%= pascalizedEntityClass %>Dto>
                 {
-                    throw new InvalidOperationException("Sort parameter format is invalid. Expected format is 'field,direction'.");
-                }
+                    Data = itemsDto,
+                    TotalCount = totalCount
+                };
             }
-
-            var totalCount = await query.CountAsync(cancellationToken);
-            var items = await query
-            <%_ relationships.forEach( relationship => {
-                if (relationship.relationshipType === 'many-to-one' || relationship.relationshipType === 'one-to-one') { _%>
-                .Include(<%= camelCasedEntityClass %> => <%= camelCasedEntityClass %>.<%= relationship.relationshipFieldNamePascalized %>)
-                <%_ } else if (relationship.relationshipType === 'many-to-many' && relationship.ownerSide) { _%>
-                .Include(<%= camelCasedEntityClass %> => <%= camelCasedEntityClass %>.<%= relationship.relationshipFieldNamePascalizedPlural %>)
-                <%_ }
-                }); _%>
-                .Skip((request.PageNumber - 1) * request.PageSize)
-                .Take(request.PageSize)
-                .ToListAsync(cancellationToken);
-
-            return new PaginatedResult<<%= pascalizedEntityClass %>>
+            catch (Exception ex)
             {
-                Data = items,
-                TotalCount = totalCount
-            };
+                Log.Error(CommHelper.LogError(typeof(<%= pascalizedEntityClass %>SearchQueryHandler), GetActualAsyncMethodName(), ex));
+                throw ex;
+            }
         }
     }
 }

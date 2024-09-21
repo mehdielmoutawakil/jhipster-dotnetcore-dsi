@@ -13,15 +13,34 @@
  limitations under the License.
 -%>
 using Microsoft.Extensions.Configuration;
+using System;
 
 namespace <%= namespace %>.Configuration;
 
+/// <summary>
+/// Configuration helper class.
+/// </summary>
 public static class ConfigurationHelper
 {
+    /// <summary>
+    /// Gets options from the configuration section.
+    /// </summary>
+    /// <typeparam name="TModel">Type of the model.</typeparam>
+    /// <param name="configuration">Application configuration.</param>
+    /// <param name="section">Configuration section.</param>
+    /// <returns>Instance of TModel with options from the configuration section.</returns>
     public static TModel GetOptions<TModel>(this IConfiguration configuration, string section) where TModel : new()
     {
         var model = new TModel();
-        configuration.GetSection(section).Bind(model);
+        
+        try
+        {
+            configuration.GetSection(section).Bind(model);
+        }
+        catch (Exception ex)
+        {
+            // TODO : Gérer l'exception & log
+        }
 
         return model;
     }

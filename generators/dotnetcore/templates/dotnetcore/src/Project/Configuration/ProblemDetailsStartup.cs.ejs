@@ -21,8 +21,14 @@ using Microsoft.Extensions.Hosting;
 
 namespace <%= namespace %>.Configuration;
 
+/// <summary>
+/// Problem details configuration.
+/// </summary>
 public static class ProblemDetailsStartup
 {
+    /// <summary>
+    /// Adds problem details services.
+    /// </summary>
     public static IServiceCollection AddProblemDetailsModule(this IServiceCollection services)
     {
         services.AddProblemDetails(config =>
@@ -30,6 +36,7 @@ public static class ProblemDetailsStartup
             config.CustomizeProblemDetails = context =>
             {
                 var exception = context.HttpContext.Features.Get<IExceptionHandlerPathFeature>()?.Error;
+
                 if (exception is BaseException)
                 {
                     context.ProblemDetails.Status = 400;
@@ -49,6 +56,9 @@ public static class ProblemDetailsStartup
         return services;
     }
 
+    /// <summary>
+    /// Configures problem details middleware.
+    /// </summary>
     public static IApplicationBuilder UseApplicationProblemDetails(this IApplicationBuilder app, IHostEnvironment environment)
     {
         app.UseExceptionHandler();

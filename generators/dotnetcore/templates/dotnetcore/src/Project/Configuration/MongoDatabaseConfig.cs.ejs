@@ -14,8 +14,18 @@
 -%>
 namespace <%= namespace %>.Infrastructure.Configuration;
 
+/// <summary>
+/// MongoDB database configuration implementation.
+/// </summary>
 public class MongoDatabaseConfig : IMongoDatabaseConfig
 {
+    /// <summary>
+    /// MongoDB connection string.
+    /// </summary>
     public string ConnectionString { get; set; }
+
+    /// <summary>
+    /// MongoDB database name.
+    /// </summary>
     public string DatabaseName { get; set; }
 }

@@ -24,7 +24,13 @@ using MediatR;
 
 namespace <%= namespace %>.Application.Queries;
 
+/// <summary>
+/// User GetAll request
+/// </summary>
 public class UserGetAllPublicUsersQuery : IRequest<(IHeaderDictionary, IEnumerable<UserDto>)>
 {
+    /// <summary>
+    /// User GetAll request body
+    /// </summary>
     public IPageable Page { get; set; }
 }

@@ -27,7 +27,13 @@ using <%= namespace %>.Dto;
 
 namespace <%= namespace %>.Application.Commands;
 
+/// <summary>
+/// <%= pascalizedEntityClass %> create request
+/// </summary>
 public class <%= pascalizedEntityClass %>CreateCommand : IRequest<<%= pascalizedEntityClass %>>
 {
+    /// <summary>
+    /// <%= pascalizedEntityClass %> create request body
+    /// </summary>
     public <%= hasDto ? asDto(pascalizedEntityClass) : pascalizedEntityClass %> <%= hasDto ? asDto(pascalizedEntityClass) : pascalizedEntityClass %> { get; set; }
 }

@@ -9,15 +9,28 @@ using <%= namespace %>.Infrastructure.Data;
 
 namespace <%= namespace %>.Application.Queries
 {
+    /// <summary>
+    /// Permission get request class handler
+    /// </summary>
     public class PermissionGetAllQueryHandler : IRequestHandler<PermissionGetAllQuery, List<PermissionDto>>
     {
         private readonly ApplicationDatabaseContext _context;
 
+        /// <summary>
+        /// Parameterized constructor
+        /// </summary>
+        /// <param name="context"></param>
         public PermissionGetAllQueryHandler(ApplicationDatabaseContext context)
         {
             _context = context;
         }
 
+        /// <summary>
+        /// Handler method
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<List<PermissionDto>> Handle(PermissionGetAllQuery request, CancellationToken cancellationToken)
         {
             var permissions = await _context.Permissions.ToListAsync(cancellationToken);

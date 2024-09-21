@@ -23,8 +23,14 @@ using <%= namespace %>.Domain.Services.Interfaces;
 
 namespace <%= namespace %>.Configuration;
 
+/// <summary>
+/// Service configuration.
+/// </summary>
 public static class ServiceStartup
 {
+    /// <summary>
+    /// Adds service module.
+    /// </summary>
     public static IServiceCollection AddServiceModule(this IServiceCollection services)
     {
         services.Scan(scan => scan

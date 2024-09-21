@@ -17,11 +17,20 @@ using <%= namespace %>.Crosscutting.Constants;
 
 namespace <%= namespace %>.Security;
 
+/// <summary>
+/// Authorization policies constants.
+/// </summary>
 public static class PoliciesConstants
 {
+    /// <summary>
+    /// Authorization policy for admin role.
+    /// </summary>
     public static readonly AuthorizationPolicy PolicyAdmin = new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser().RequireRole(RolesConstants.ADMIN).Build();
 
+    /// <summary>
+    /// Authorization policy for user role.
+    /// </summary>
     public static readonly AuthorizationPolicy PolicyUser = new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser().RequireRole(RolesConstants.USER).Build();
 }

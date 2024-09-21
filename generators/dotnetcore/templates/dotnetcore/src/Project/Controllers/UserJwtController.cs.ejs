@@ -63,17 +63,17 @@ public class UserJwtController : ControllerBase
     public async Task<ActionResult<JwtToken>> Authorize([FromBody] LoginDto loginDto)
     {
         <%_ if (cqrsEnabled) { _%>
-        var user = await _mediator.Send(new UserJwtAuthorizeCommand { LoginDto = loginDto });
+        var (IPrincipalUser, user) = await _mediator.Send(new UserJwtAuthorizeCommand { LoginDto = loginDto });
         <%_ } else { _%>
-        var user = await _authenticationService.Authenticate(loginDto.Username, loginDto.Password);
+        var (IPrincipalUser, user) = await _authenticationService.Authenticate(loginDto.Username, loginDto.Password);
         <%_ } _%>
         var rememberMe = loginDto.RememberMe;
-        var jwt = _tokenProvider.CreateToken(user, rememberMe);
+        var jwt = _tokenProvider.CreateToken(IPrincipalUser, rememberMe);
         var httpHeaders = new HeaderDictionary
         {
             [JwtConstants.AuthorizationHeader] = $"{JwtConstants.BearerPrefix} {jwt}"
         };
-        return Ok(new JwtToken(jwt)).WithHeaders(httpHeaders);
+        return Ok(new JwtToken(jwt, user)).WithHeaders(httpHeaders);
     }
 
     [HttpPost("check-token")]
@@ -87,10 +87,12 @@ public class UserJwtController : ControllerBase
 
 public class JwtToken
 {
-    public JwtToken(string idToken)
+    public JwtToken(string idToken, UserDto user)
     {
         IdToken = idToken;
+        User = user;
     }
 
     [JsonProperty("id_token")] private string IdToken { get; }
+    [JsonProperty("user")] private UserDto User { get; }
 }

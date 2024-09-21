@@ -16,9 +16,17 @@ using <%= namespace %>.Crosscutting.Constants;
 
 namespace <%= namespace %>.Crosscutting.Exceptions;
 
+/// <summary>
+/// Exception for internal server error.
+/// </summary>
 public class InternalServerErrorException : BaseException
 {
-    public InternalServerErrorException(string message) : base(ErrorConstants.DefaultType, message)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="InternalServerErrorException"/> class.
+    /// </summary>
+    /// <param name="message">The error message.</param>
+    public InternalServerErrorException(string message) 
+        : base(ErrorConstants.DefaultType, message)
     {
     }
 }

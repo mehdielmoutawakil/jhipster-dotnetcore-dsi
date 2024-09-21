@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{03AD4979-5CDD-44B2-AA4B-6F28DCF8A46D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dotnetcore", "dotnetcore", "{EF8D3EEC-67D2-4697-867E-2C180AB5C0E7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "fakecsproj", "templates\dotnetcore\src\fakecsproj.csproj", "{DD91D05E-1807-4FA2-A77C-612DDE426973}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DD91D05E-1807-4FA2-A77C-612DDE426973}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD91D05E-1807-4FA2-A77C-612DDE426973}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD91D05E-1807-4FA2-A77C-612DDE426973}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD91D05E-1807-4FA2-A77C-612DDE426973}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EF8D3EEC-67D2-4697-867E-2C180AB5C0E7} = {03AD4979-5CDD-44B2-AA4B-6F28DCF8A46D}
+		{DD91D05E-1807-4FA2-A77C-612DDE426973} = {EF8D3EEC-67D2-4697-867E-2C180AB5C0E7}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {827319F4-9261-4739-9650-8915031452BE}
+	EndGlobalSection
+EndGlobal

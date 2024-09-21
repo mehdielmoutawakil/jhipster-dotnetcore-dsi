@@ -18,28 +18,50 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace <%= namespace %>.Web.Extensions;
 
+/// <summary>
+/// ActionResult that adds headers to the response.
+/// </summary>
 public class ActionResultWithHeaders : ActionResult
 {
     private readonly IHeaderDictionary _headers;
     private readonly ActionResult _result;
 
+    /// <summary>
+    /// Initializes a new instance of ActionResultWithHeaders.
+    /// </summary>
+    /// <param name="receiver">ActionResult to add headers to.</param>
+    /// <param name="headers">Headers to add.</param>
     public ActionResultWithHeaders(ActionResult receiver, IHeaderDictionary headers)
     {
         _result = receiver;
         _headers = headers;
     }
 
+    /// <summary>
+    /// Executes the result asynchronously.
+    /// </summary>
+    /// <param name="context">ActionContext for the execution.</param>
+    /// <returns>A task that represents the execution of the result.</returns>
     private void AddHeaders(HttpResponse response)
     {
         foreach (var (name, value) in _headers) response.Headers.Add(name, value);
     }
 
+    /// <summary>
+    /// Executes the result asynchronously.
+    /// </summary>
+    /// <param name="context">ActionContext for the execution.</param>
+    /// <returns>A task that represents the execution of the result.</returns>
     public override Task ExecuteResultAsync(ActionContext context)
     {
         AddHeaders(context.HttpContext.Response);
         return _result.ExecuteResultAsync(context);
     }
 
+    /// <summary>
+    /// Executes the result synchronously.
+    /// </summary>
+    /// <param name="context">ActionContext for the execution.</param>
     public override void ExecuteResult(ActionContext context)
     {
         AddHeaders(context.HttpContext.Response);

@@ -53,12 +53,18 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace <%= namespace %>.Configuration;
 
+/// <summary>
+/// Security configuration.
+/// </summary>
 public static class SecurityStartup
 {
     <%_ if (authenticationType === 'jwt') { _%>
     public const string UserNameClaimType = ClaimTypes.NameIdentifier;
     <%_ } _%>
 
+    /// <summary>
+    /// Adds security services.
+    /// </summary>
     public static IServiceCollection AddSecurityModule(this IServiceCollection services)
     {
         //TODO Retrieve the signing key properly (DRY with TokenProvider)
@@ -99,10 +105,10 @@ public static class SecurityStartup
                 options.ClaimsIdentity.UserNameClaimType = UserNameClaimType;
             })
             .AddEntityFrameworkStores<ApplicationDatabaseContext>()
-            .AddUserStore<UserStore<User, Role, ApplicationDatabaseContext, string, IdentityUserClaim<string>,
-                UserRole, IdentityUserLogin<string>, IdentityUserToken<string>, IdentityRoleClaim<string>>>()
-            .AddRoleStore<RoleStore<Role, ApplicationDatabaseContext, string, UserRole, IdentityRoleClaim<string>>
-            >()
+                .AddUserStore<UserStore<User, Role, ApplicationDatabaseContext, int, IdentityUserClaim<int>,
+                    UserRole, IdentityUserLogin<int>, IdentityUserToken<int>, IdentityRoleClaim<int>>>()
+                .AddRoleStore<RoleStore<Role, ApplicationDatabaseContext, int, UserRole, IdentityRoleClaim<int>>
+                >()
             <%_ } _%>
             .AddDefaultTokenProviders();
         <%_ } _%>
@@ -163,6 +169,9 @@ public static class SecurityStartup
         return services;
     }
 
+    /// <summary>
+    /// Configures application security.
+    /// </summary>
     public static IApplicationBuilder UseApplicationSecurity(this IApplicationBuilder app,
         SecuritySettings securitySettings)
     {
@@ -179,6 +188,9 @@ public static class SecurityStartup
         return app;
     }
 
+    /// <summary>
+    /// Builds CORS policy.
+    /// </summary>
     private static Action<CorsPolicyBuilder> CorsPolicyBuilder(Cors config)
     {
         //TODO implement an url based cors policy rather than global or per controller

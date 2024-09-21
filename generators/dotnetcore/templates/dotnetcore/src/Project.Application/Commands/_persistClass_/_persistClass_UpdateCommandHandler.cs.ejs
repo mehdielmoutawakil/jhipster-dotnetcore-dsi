@@ -28,16 +28,34 @@ using <%= namespace %>.Domain.Repositories.Interfaces;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
+using System;
+using System.Runtime.CompilerServices;
+using Serilog;
+using Application.Utility;
 
 namespace <%= namespace %>.Application.Commands;
 
+/// <summary>
+/// <%= pascalizedEntityClass %> update request class handler
+/// </summary>
 public class <%= pascalizedEntityClass %>UpdateCommandHandler : IRequestHandler<<%= pascalizedEntityClass %>UpdateCommand, <%= pascalizedEntityClass %>>
 {
     private I<%= pascalizedEntityClass %>Repository _<%= camelCasedEntityClass %>Repository;
     <%_ if (hasDto) { _%>
     private readonly IMapper _mapper;
     <%_ } _%>
+    
+    /// <summary>
+    /// Variable used to get API method name, in async calls
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
 
+    /// <summary>
+    /// <%= pascalizedEntityClass %>UpdateCommandHandler parameterized constructor
+    /// </summary>
+    /// <param name="activityRepository"></param>
     public <%= pascalizedEntityClass %>UpdateCommandHandler(
         <%_ if (hasDto) { _%>
         IMapper mapper,
@@ -50,15 +68,28 @@ public class <%= pascalizedEntityClass %>UpdateCommandHandler : IRequestHandler<
         _<%= camelCasedEntityClass %>Repository = <%= camelCasedEntityClass %>Repository;
     }
 
+    /// <summary>
+    /// Handler Method
+    /// </summary>
+    /// <param name="command"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async Task<<%= pascalizedEntityClass %>> Handle(<%= pascalizedEntityClass %>UpdateCommand command, CancellationToken cancellationToken)
     {
-        <%_ if (hasDto) { _%>
-        <%= pascalizedEntityClass %> <%= camelCasedEntityClass %> = _mapper.Map<<%= pascalizedEntityClass %>>(command.<%= hasDto ? asDto(pascalizedEntityClass) : pascalizedEntityClass %>);
-        var entity = await _<%= camelCasedEntityClass %>Repository.CreateOrUpdateAsync(<%= camelCasedEntityClass %>);
-        <%_ } else { _%>
-        var entity = await _<%= camelCasedEntityClass %>Repository.CreateOrUpdateAsync(command.<%= pascalizedEntityClass %>);
-        <%_ } _%>
-        await _<%= camelCasedEntityClass %>Repository.SaveChangesAsync();
-        return entity;
+        try {
+            <%_ if (hasDto) { _%>
+            <%= pascalizedEntityClass %> <%= camelCasedEntityClass %> = _mapper.Map<<%= pascalizedEntityClass %>>(command.<%= hasDto ? asDto(pascalizedEntityClass) : pascalizedEntityClass %>);
+            var entity = await _<%= camelCasedEntityClass %>Repository.CreateOrUpdateAsync(<%= camelCasedEntityClass %>);
+            <%_ } else { _%>
+            var entity = await _<%= camelCasedEntityClass %>Repository.CreateOrUpdateAsync(command.<%= pascalizedEntityClass %>);
+            <%_ } _%>
+            await _<%= camelCasedEntityClass %>Repository.SaveChangesAsync();
+            return entity;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(CommHelper.LogError(typeof(<%= pascalizedEntityClass %>UpdateCommandHandler), GetActualAsyncMethodName(), ex));
+            throw ex;
+        }
     }
 }

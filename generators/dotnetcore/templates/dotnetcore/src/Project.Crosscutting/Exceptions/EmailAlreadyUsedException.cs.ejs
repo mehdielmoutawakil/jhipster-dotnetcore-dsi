@@ -16,10 +16,16 @@ using <%= namespace %>.Crosscutting.Constants;
 
 namespace <%= namespace %>.Crosscutting.Exceptions;
 
+/// <summary>
+/// Exception for email already used.
+/// </summary>
 public class EmailAlreadyUsedException : BadRequestAlertException
 {
-    public EmailAlreadyUsedException() : base(ErrorConstants.EmailAlreadyUsedType, "Email is already in use!",
-        "userManagement", "emailexists")
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EmailAlreadyUsedException"/> class.
+    /// </summary>
+    public EmailAlreadyUsedException() 
+        : base(ErrorConstants.EmailAlreadyUsedType, "Email is already in use!", "userManagement", "emailexists")
     {
     }
 }

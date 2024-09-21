@@ -18,7 +18,7 @@ import {
   SERVER_SRC_DIR,
   SERVER_TEST_DIR,
 } from '../generator-dotnetcore-constants.js';
-import { entityCommonFiles, entityFiles } from './entity-files.js';
+import { entityCommonFiles, entityFiles, entityfilesWithUploadFileCommands } from './entity-files.js';
 
 export default class extends BaseApplicationGenerator {
   constructor(args, opts, features) {
@@ -152,20 +152,38 @@ export default class extends BaseApplicationGenerator {
               }
             }
           });
-
-          await this.writeFiles({
-            sections: entityFiles,
-            context: {
-              ...application,
-              ...entity,
-              asDto: str => `${str}${application.dtoSuffix}`,
-              getNullableResolvedType,
-              getNullableResolvedPrimaryKeyType,
-              isNumericPrimaryKey,
-              getPrimaryKeyType,
-            },
-            rootTemplatesPath: ['dotnetcore'],
-          });
+          
+          // check if there is any field type as blob
+          if (entity.anyFieldIsBlobDerived) {
+            await this.writeFiles({
+              sections: entityfilesWithUploadFileCommands,
+              context: {
+                ...application,
+                ...entity,
+                asDto: str => `${str}${application.dtoSuffix}`,
+                getNullableResolvedType,
+                getNullableResolvedPrimaryKeyType,
+                isNumericPrimaryKey,
+                getPrimaryKeyType,
+              },
+              rootTemplatesPath: ['dotnetcore'],
+            });
+          } else {
+            await this.writeFiles({
+              sections: entityFiles,
+              context: {
+                ...application,
+                ...entity,
+                asDto: str => `${str}${application.dtoSuffix}`,
+                getNullableResolvedType,
+                getNullableResolvedPrimaryKeyType,
+                isNumericPrimaryKey,
+                getPrimaryKeyType,
+              },
+              rootTemplatesPath: ['dotnetcore'],
+            });
+          }
+          
           await this.writeFiles({
             sections: entityCommonFiles,
             context: {

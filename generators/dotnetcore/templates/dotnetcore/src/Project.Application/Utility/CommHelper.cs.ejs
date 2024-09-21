@@ -1,0 +1,23 @@
+﻿using System;
+
+namespace Application.Utility
+{
+    /// <summary>
+    /// Class used for communication (Email, SMS, WhatsApp)
+    /// </summary>
+    public static class CommHelper
+    {
+        /// <summary>
+        /// Write errors to log file
+        /// </summary>
+        /// <param name="declaringType"></param>
+        /// <param name="methodName"></param>
+        /// <param name="ex"></param>
+        /// <returns></returns>
+        public static string LogError(Type declaringType, string methodName, Exception ex)
+        {
+            string logMessage = $"Error in {declaringType.Name}/{methodName} : {ex.Message}";
+            return logMessage;
+        }
+    }
+}

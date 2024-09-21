@@ -8,56 +8,89 @@ using System.Threading.Tasks;
 using <%= namespace %>.Domain.Entities;
 using <%= namespace %>.Dto;
 using <%= namespace %>.Infrastructure.Data;
+using System.Runtime.CompilerServices;
+using Serilog;
+using Application.Utility;
 
 namespace <%= namespace %>.Application.Queries
 {
+    /// <summary>
+    /// Position Search request class
+    /// </summary>
     class PositionSearchQueryHandler : IRequestHandler<PositionSearchQuery, PaginatedResult<PositionDto>>
     {
         private readonly ApplicationDatabaseContext _context;
+        
+        /// <summary>
+        /// Variable used to get API method name, in async calls
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
 
+        /// <summary>
+        /// Parameterized constructor
+        /// </summary>
+        /// <param name="context"></param>
         public PositionSearchQueryHandler(ApplicationDatabaseContext context)
         {
             _context = context;
         }
 
+        /// <summary>
+        /// Handler method
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<PaginatedResult<PositionDto>> Handle(PositionSearchQuery request, CancellationToken cancellationToken)
         {
-            IQueryable<Position> query = _context.Positions.AsQueryable();
-        
-            // Apply filters
-            foreach (var filter in request.Filters)
+            try
             {
-                query = FilterHelper.ApplyFilter(query, filter);
-            }
-        
-            // Apply sorting
-            query = SortHelper.ApplySort(query, request.Sort);
-        
-            // Apply pagination
-            query = PagingHelper.ApplyPaging(query, request.PageNumber, request.PageSize);
-        
-            // Get total data
-            var totalCount = await query.CountAsync(cancellationToken);
-        
-            // Get data
-            var items = await query
-                .Select(p => new PositionDto
+                IQueryable<Position> query = _context.Positions.AsQueryable();
+            
+                // Apply filters
+                foreach (var filter in request.Filters)
                 {
-                    Id = p.Id,
-                    Name = p.Name,
-                    IsAdmin = p.IsAdmin,
-                    Permissions = p.PositionPermissions
-                    .Select(pp => pp.Permission.Name)
-                    .ToArray()
-                })
-                .ToListAsync(cancellationToken);
-        
-            // Return result
-            return new PaginatedResult<PositionDto>
+                    query = FilterHelper.ApplyFilter(query, filter);
+                }
+                
+                // Get total data
+                var totalCount = await query.CountAsync(cancellationToken);
+            
+                // Apply sorting
+                query = SortHelper.ApplySort(query, request.Sort);
+            
+                // Apply pagination
+                query = PagingHelper.ApplyPaging(query, request.PageNumber, request.PageSize);
+            
+                // Get data
+                var items = await query
+                    .Where(p => p.DeletedAt == null)
+                    .Select(p => new PositionDto
+                    {
+                        Id = p.Id,
+                        Name = p.Name,
+                        IsAdmin = p.IsAdmin,
+                        Permissions = p.PositionPermissions
+                        .Select(pp => pp.Permission.Name)
+                        .ToArray()
+                    })
+                    .AsNoTracking()
+                    .ToListAsync(cancellationToken);
+            
+                // Return result
+                return new PaginatedResult<PositionDto>
+                {
+                    Data = items,
+                    TotalCount = totalCount
+                };
+            }
+            catch (Exception ex)
             {
-                Data = items,
-                TotalCount = totalCount
-            };
+                Log.Error(CommHelper.LogError(typeof(PositionSearchQueryHandler), GetActualAsyncMethodName(), ex));
+                throw ex;
+            }
         }
     }
 }

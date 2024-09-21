@@ -16,10 +16,22 @@ using Microsoft.AspNetCore.Http;
 
 namespace <%= namespace %>.Infrastructure.Web.Rest.Utilities;
 
+/// <summary>
+/// Utility class for creating HTTP headers.
+/// </summary>
 public static class HeaderUtil
 {
+    /// <summary>
+    /// Application name used in header keys.
+    /// </summary>
     private static readonly string APPLICATION_NAME = "<%= frontendAppName %>";
 
+    /// <summary>
+    /// Creates a header dictionary with alert information.
+    /// </summary>
+    /// <param name="message">Alert message.</param>
+    /// <param name="param">Alert parameter.</param>
+    /// <returns>Header dictionary.</returns>
     public static IHeaderDictionary CreateAlert(string message, string param)
     {
         IHeaderDictionary headers = new HeaderDictionary();
@@ -28,27 +40,53 @@ public static class HeaderUtil
         return headers;
     }
 
+    /// <summary>
+    /// Creates a header dictionary for entity creation alerts.
+    /// </summary>
+    /// <param name="entityName">Name of the entity.</param>
+    /// <param name="param">Alert parameter.</param>
+    /// <returns>Header dictionary.</returns>
     public static IHeaderDictionary CreateEntityCreationAlert(string entityName, string param)
     {
         return CreateAlert($"{APPLICATION_NAME}.{entityName}.created", param);
     }
 
+    /// <summary>
+    /// Creates a header dictionary for entity update alerts.
+    /// </summary>
+    /// <param name="entityName">Name of the entity.</param>
+    /// <param name="param">Alert parameter.</param>
+    /// <returns>Header dictionary.</returns>
     public static IHeaderDictionary CreateEntityUpdateAlert(string entityName, string param)
     {
         return CreateAlert($"{APPLICATION_NAME}.{entityName}.updated", param);
     }
 
+    /// <summary>
+    /// Creates a header dictionary for entity deletion alerts.
+    /// </summary>
+    /// <param name="entityName">Name of the entity.</param>
+    /// <param name="param">Alert parameter.</param>
+    /// <returns>Header dictionary.</returns>
     public static IHeaderDictionary CreateEntityDeletionAlert(string entityName, string param)
     {
         return CreateAlert($"{APPLICATION_NAME}.{entityName}.deleted", param);
     }
 
+    /// <summary>
+    /// Creates a header dictionary for failure alerts.
+    /// </summary>
+    /// <param name="entityName">Name of the entity.</param>
+    /// <param name="errorKey">Error key.</param>
+    /// <param name="defaultMessage">Default error message.</param>
+    /// <returns>Header dictionary.</returns>
     public static IHeaderDictionary CreateFailureAlert(string entityName, string errorKey, string defaultMessage)
     {
-        //log.error("Entity processing failed, {}", defaultMessage);
         IHeaderDictionary headers = new HeaderDictionary();
+
         headers.Add($"X-{APPLICATION_NAME}-error", $"error.{errorKey}");
         headers.Add($"X-{APPLICATION_NAME}-params", entityName);
+
         return headers;
     }
 }

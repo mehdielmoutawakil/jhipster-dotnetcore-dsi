@@ -36,8 +36,17 @@ using <%= namespace %>.Infrastructure.Configuration;
 
 namespace <%= namespace %>.Configuration;
 
+/// <summary>
+/// Database configuration module.
+/// </summary>
 public static class DatabaseConfiguration
 {
+    /// <summary>
+    /// Adds database module to the service collection.
+    /// </summary>
+    /// <param name="services">Service collection.</param>
+    /// <param name="configuration">Application configuration.</param>
+    /// <returns>Service collection with database module added.</returns>
     public static IServiceCollection AddDatabaseModule(this IServiceCollection services, IConfiguration configuration)
     {
         <%_ if (databaseType !== 'mongodb') { _%>
@@ -137,6 +146,12 @@ public static class DatabaseConfiguration
         return services;
     }
 
+    /// <summary>
+    /// Ensures the database is created in development or production environments.
+    /// </summary>
+    /// <param name="app">Application builder.</param>
+    /// <param name="environment">Host environment.</param>
+    /// <returns>Application builder with database creation ensured.</returns>
     public static IApplicationBuilder UseApplicationDatabase(this IApplicationBuilder app, IHostEnvironment environment)
     {
         <%_ if (databaseType !== 'mongodb') { _%>

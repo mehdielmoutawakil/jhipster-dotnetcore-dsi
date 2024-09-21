@@ -29,45 +29,95 @@ using <%= namespace %>.Domain.Repositories.Interfaces;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
+using System;
+using System.IO;
+using Microsoft.Extensions.Configuration;
+using System.Runtime.CompilerServices;
+using Serilog;
+using Application.Utility;
 
 namespace <%= namespace %>.Application.Queries;
 
+/// <summary>
+/// <%= pascalizedEntityClass %> Get request class handler
+/// </summary>
 public class <%= pascalizedEntityClass %>GetQueryHandler : IRequestHandler<<%= pascalizedEntityClass %>GetQuery, <%= hasDto ? asDto(pascalizedEntityClass) : pascalizedEntityClass %>>
 {
     private IReadOnly<%= pascalizedEntityClass %>Repository _<%= camelCasedEntityClass %>Repository;
     <%_ if (hasDto) { _%>
     private readonly IMapper _mapper;
     <%_ } _%>
+    <%_ if (anyFieldIsBlobDerived) { _%>
+    private readonly string _baseImagePath;
+    <%_ } _%>
+    
+    /// <summary>
+    /// Variable used to get API method name, in async calls
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
 
+    /// <summary>
+    /// <%= pascalizedEntityClass %>GetQueryHandler parameterized constructor
+    /// </summary>
+    /// <param name="activityRepository"></param>
     public <%= pascalizedEntityClass %>GetQueryHandler(
         <%_ if (hasDto) { _%>
         IMapper mapper,
         <%_ } _%>
-        IReadOnly<%= pascalizedEntityClass %>Repository <%= camelCasedEntityClass %>Repository)
+        IReadOnly<%= pascalizedEntityClass %>Repository <%= camelCasedEntityClass %>Repository<%_ if (anyFieldIsBlobDerived) { _%>, IConfiguration configuration<%_ } _%>)
     {
         <%_ if (hasDto) { _%>
         _mapper = mapper;
         <%_ } _%>
         _<%= camelCasedEntityClass %>Repository = <%= camelCasedEntityClass %>Repository;
+
+        <%_ if (anyFieldIsBlobDerived) { _%>
+        // Read base image path from configuration
+        try
+        {
+            _baseImagePath = configuration.GetSection("ImageSettings:BaseImagePath").Value;
+        }
+        catch (Exception ex)
+        {
+            // Default Base image url will be called uploads
+            _baseImagePath = "uploads";
+        }
+        <%_ } _%>
     }
 
+    /// <summary>
+    /// Handler Method
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async Task<<%= hasDto ? asDto(pascalizedEntityClass) : pascalizedEntityClass %>> Handle(<%= pascalizedEntityClass %>GetQuery request, CancellationToken cancellationToken)
     {
-        var entity = await _<%= camelCasedEntityClass %>Repository.QueryHelper()
-        <%_ if (databaseType != 'mongodb') { _%>
-        <%_ relationships.forEach( relationship => {
-            if (relationship.relationshipType === 'many-to-one' || relationship.relationshipType === 'one-to-one') { _%>
-            .Include(<%= camelCasedEntityClass %> => <%= camelCasedEntityClass %>.<%= relationship.relationshipFieldNamePascalized %>)
-            <%_ } else if (relationship.relationshipType === 'many-to-many' && relationship.ownerSide) { _%>
-            .Include(<%= camelCasedEntityClass %> => <%= camelCasedEntityClass %>.<%= relationship.relationshipFieldNamePascalizedPlural %>)
-            <%_ }
-        }); _%>
-        <%_ } _%>
-            .GetOneAsync(<%= camelCasedEntityClass %> => <%= camelCasedEntityClass %>.Id == request.Id);
-        <%_ if (hasDto) { _%>
-        return _mapper.Map<<%= asDto(pascalizedEntityClass) %>>(entity);
-        <%_ } else { _%>
-        return entity;
-        <%_ } _%>
+        try {
+            var entity = await _<%= camelCasedEntityClass %>Repository.QueryHelper()
+            <%_ if (databaseType != 'mongodb') { _%>
+            <%_ relationships.forEach( relationship => {
+                if (relationship.relationshipType === 'many-to-one' || relationship.relationshipType === 'one-to-one') { _%>
+                .Include(<%= camelCasedEntityClass %> => <%= camelCasedEntityClass %>.<%= relationship.relationshipFieldNamePascalized %>)
+                <%_ } else if (relationship.relationshipType === 'many-to-many' && relationship.ownerSide) { _%>
+                .Include(<%= camelCasedEntityClass %> => <%= camelCasedEntityClass %>.<%= relationship.relationshipFieldNamePascalizedPlural %>)
+                <%_ }
+            }); _%>
+            <%_ } _%>
+                .AsNoTracking()
+                .GetOneAsync(<%= camelCasedEntityClass %> => <%= camelCasedEntityClass %>.Id == request.Id);
+            <%_ if (hasDto) { _%>
+            return _mapper.Map<<%= asDto(pascalizedEntityClass) %>>(entity);
+            <%_ } else { _%>
+            return entity;
+            <%_ } _%>
+        }
+        catch (Exception ex)
+        {
+            Log.Error(CommHelper.LogError(typeof(<%= pascalizedEntityClass %>GetQueryHandler), GetActualAsyncMethodName(), ex));
+            throw ex;
+        }
     }
 }

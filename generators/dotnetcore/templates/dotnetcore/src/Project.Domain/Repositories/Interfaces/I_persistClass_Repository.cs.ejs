@@ -17,13 +17,15 @@
  limitations under the License.
 -%>
 using <%= namespace %>.Domain.Entities;
-using System;
+using System.Threading.Tasks;
 
 namespace <%= namespace %>.Domain.Repositories.Interfaces
 {
     <%_ if (databaseType != 'mongodb') { _%>
     public interface I<%= pascalizedEntityClass %>Repository : IGenericRepository<<%= pascalizedEntityClass %>, <%= primaryKeyType%>>
     {
+        Task<<%= pascalizedEntityClass %>> GetByIdAsync(<%= primaryKeyType %> id);
+        Task UpdateAsync(<%= pascalizedEntityClass %> <%= camelCasedEntityClass %>);
     }
     <%_ } else { _%>
     public interface I<%= pascalizedEntityClass %>Repository : INoSqlGenericRepository<<%= pascalizedEntityClass %>, <%= primaryKeyType %>>

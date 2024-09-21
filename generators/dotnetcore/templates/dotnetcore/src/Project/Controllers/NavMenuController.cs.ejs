@@ -17,13 +17,21 @@ namespace <%= namespace %>.Controllers
         private readonly ILogger<NavMenuController> _log;
         private readonly IMediator _mediator;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="log"></param>
+        /// <param name="mediator"></param>
         public NavMenuController(ILogger<NavMenuController> log, IMediator mediator)
         {
             _log = log;
             _mediator = mediator;
         }
 
-
+        /// <summary>
+        /// Get list of navMenu
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("tree")]
         public async Task<ActionResult<List<NavMenu>>> GetNavigationTree()
         {

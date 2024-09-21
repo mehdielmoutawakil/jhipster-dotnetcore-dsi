@@ -1,0 +1,242 @@
+using System;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using FluentAssertions;
+using <%= namespace %>.Infrastructure.Data;
+using <%= namespace %>.Domain.Entities;
+using <%= namespace %>.Domain.Repositories.Interfaces;
+using <%= namespace %>.Test.Setup;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
+using Xunit;
+using System.Collections.Generic;
+using Serilog;
+
+namespace <%= namespace %>.Test.Controllers
+{
+    public class PositionsControllerIntTest
+    {
+        public PositionsControllerIntTest()
+        {
+            _factory = new AppWebApplicationFactory<TestStartup>().WithMockUser();
+            _client = _factory.CreateClient();
+
+            _positionRepository = _factory.GetRequiredService<IPositionRepository>();
+
+
+            InitTest();
+        }
+
+        private const string DefaultName = "546c776b3e23f5f2ebdd3b03";
+        private const string UpdatedName = "546c776b3e23f5f2ebdd3b0a";
+
+        private readonly AppWebApplicationFactory<TestStartup> _factory;
+        private readonly HttpClient _client;
+        private readonly IPositionRepository _positionRepository;
+
+        private Position _position;
+
+
+        private Position CreateEntity()
+        {
+            return new Position
+            {
+                Name = DefaultName,
+                IsAdmin = true,
+            };
+        }
+
+        private void InitTest()
+        {
+            _position = CreateEntity();
+        }
+
+        [Fact]
+        public async Task CreatePosition()
+        {
+            var databaseSizeBeforeCreate = await _positionRepository.CountAsync();
+
+            // Create the Position
+            var response = await _client.PostAsync("/api/positions", TestUtil.ToJsonContent(_position));
+            response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+            // Validate the Position in the database
+            var positionList = await _positionRepository.GetAllAsync();
+            positionList.Count().Should().Be(databaseSizeBeforeCreate + 1);
+            var testPosition = positionList.Last();
+            testPosition.Name.Should().Be(DefaultName);
+            testPosition.IsAdmin.Should().Be(true);
+        }
+
+        [Fact]
+        public async Task CreatePositionWithExistingId()
+        {
+            var databaseSizeBeforeCreate = await _positionRepository.CountAsync();
+            // Create the Position with an existing ID
+            _position.Id = 1;
+
+            // An entity with an existing ID cannot be created, so this API call must fail
+            var response = await _client.PostAsync("/api/positions", TestUtil.ToJsonContent(_position));
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+            // Validate the Position in the database
+            var positionList = await _positionRepository.GetAllAsync();
+            positionList.Count().Should().Be(databaseSizeBeforeCreate);
+        }
+
+        [Fact]
+        public async Task CheckNameIsRequired()
+        {
+            var databaseSizeBeforeTest = await _positionRepository.CountAsync();
+
+            // Set the field to default
+            _position.Name = default;
+
+            // Create the Position, which fails.
+            var response = await _client.PostAsync("/api/positions", TestUtil.ToJsonContent(_position));
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+            var positionList = await _positionRepository.GetAllAsync();
+            positionList.Count().Should().Be(databaseSizeBeforeTest);
+        }
+
+        [Fact]
+        public async Task UpdatePosition()
+        {
+            // Initialize the database
+            await _positionRepository.CreateOrUpdateAsync(_position);
+            await _positionRepository.SaveChangesAsync();
+            var databaseSizeBeforeUpdate = await _positionRepository.CountAsync();
+
+            // Update the position
+            var updatedPosition = await _positionRepository.QueryHelper().GetOneAsync(it => it.Id == _position.Id);
+            // Disconnect from session so that the updates on updatedPosition are not directly saved in db
+            //TODO detach
+            updatedPosition.Name = UpdatedName;
+            updatedPosition.IsAdmin = false;
+
+            var response = await _client.PutAsync($"/api/positions", TestUtil.ToJsonContent(updatedPosition));
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            // Validate the Position in the database
+            var positionList = await _positionRepository.GetAllAsync();
+            positionList.Count().Should().Be(databaseSizeBeforeUpdate);
+            var testPosition = positionList.Last();
+            testPosition.Name.Should().Be(UpdatedName);
+            testPosition.IsAdmin.Should().Be(false);
+        }
+
+        [Fact]
+        public async Task UpdateNonExistingPosition()
+        {
+            var databaseSizeBeforeUpdate = await _positionRepository.CountAsync();
+
+            // If the entity doesn't have an ID, it will throw BadRequestAlertException
+            var response = await _client.PutAsync("/api/positions/1", TestUtil.ToJsonContent(_position));
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+            // Validate the Position in the database
+            var positionList = await _positionRepository.GetAllAsync();
+            positionList.Count().Should().Be(databaseSizeBeforeUpdate);
+        }
+
+        [Fact]
+        public async Task TestSimpleSearch()
+        {
+            var databaseSizeBeforeUpdate = await _positionRepository.CountAsync();
+
+            // Initialize the database with multiple positions
+            var position1 = new Position
+            {
+                Name = "First Position",
+                IsAdmin = true
+            };
+            var position2 = new Position
+            {
+                Name = "Second Position",
+                IsAdmin = true
+            };
+            var position3 = new Position
+            {
+                Name = "Third Position",
+                IsAdmin = true
+            };
+            await _positionRepository.CreateOrUpdateAsync(position1);
+            await _positionRepository.CreateOrUpdateAsync(position2);
+            await _positionRepository.CreateOrUpdateAsync(position3);
+            await _positionRepository.SaveChangesAsync();
+
+            // Act - Perform a search with filters, sorting, and pagination
+            var searchParams = new Dictionary<string, string>
+            {
+                // { "sort", "title,asc" }, // Sort by title in ascending order
+                { "pageNumber", "1" },
+                { "pageSize", "10" },
+                //{ "title:contains", "Second" }
+            };
+
+            var response = await _client.GetAsync("/api/Positions/search?" + await new FormUrlEncodedContent(searchParams).ReadAsStringAsync());
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            var json = JToken.Parse(await response.Content.ReadAsStringAsync());
+
+            var data = json.SelectToken("$.data");
+
+            //Check the structure and count
+            data.Should().NotBeNull("The 'data' property should exist in the response.");
+            data.Should().BeOfType<JArray>("The 'data' property should be an array.");
+            data.Should().HaveCount(databaseSizeBeforeUpdate + 3, "The 'data' array should contain exactly 3 items.");
+
+            json.SelectToken("$.totalCount").Value<int>().Should().Be(databaseSizeBeforeUpdate + 3, "The 'totalCount' should be 3.");
+        }
+
+        [Fact]
+        public async Task SearchPositionsWithFilters()
+        {
+            // Arrange
+            // Initialize the database with multiple positions
+            var position1 = new Position
+            {
+                Name = "First Position",
+                IsAdmin = false
+            };
+            var position2 = new Position
+            {
+                Name = "Second Position",
+                IsAdmin = true
+            };
+            var position3 = new Position
+            {
+                Name = "Third Position",
+                IsAdmin = false
+            };
+            await _positionRepository.CreateOrUpdateAsync(position1);
+            await _positionRepository.CreateOrUpdateAsync(position2);
+            await _positionRepository.CreateOrUpdateAsync(position3);
+            await _positionRepository.SaveChangesAsync();
+
+            // Act - Perform a search with filters, sorting, and pagination
+            var searchParams = new Dictionary<string, string>
+            {
+                // { "sort", "title,asc" }, // Sort by title in ascending order
+                { "pageNumber", "1" },
+                { "pageSize", "10" },
+                { "name:contains", "Second" }
+            };
+
+            var response = await _client.GetAsync("/api/Positions/search?" + await new FormUrlEncodedContent(searchParams).ReadAsStringAsync());
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            var json = JToken.Parse(await response.Content.ReadAsStringAsync());
+            json.SelectToken("$.data").Count().Should().Be(1);
+            json.SelectTokens("$.data[*].name").Should().Contain("Second Position");
+            json.SelectToken("$.data[*].isAdmin").Value<bool>().Should().Be(true);
+            json.SelectTokens("$.data[*].name").Should().NotContain("First Position");
+            json.SelectToken("$.data[*].isAdmin").Value<bool>().Should().NotBe(false);
+            json.SelectTokens("$.data[*].name").Should().NotContain("Third Position");
+            json.SelectToken("$.data[*].isAdmin").Value<bool>().Should().NotBe(false);
+        }
+    }
+}

@@ -27,9 +27,15 @@ using <%= namespace %>.Domain.Entities;
 using <%= namespace %>.Domain.Services.Interfaces;
 using <%= namespace %>.Crosscutting.Exceptions;
 using <%= namespace %>.Dto;
+using System.Runtime.CompilerServices;
+using Serilog;
+using Application.Utility;
 
 namespace <%= namespace %>.Application.Commands;
 
+/// <summary>
+/// User create request class handler
+/// </summary>
 public class UserCreateCommandHandler : IRequestHandler<UserCreateCommand, UserDetailDto>
 {
     private readonly IMailService _mailService;
@@ -37,6 +43,20 @@ public class UserCreateCommandHandler : IRequestHandler<UserCreateCommand, UserD
     private readonly IUserService _userService;
     private readonly IMapper _mapper;
 
+    /// <summary>
+    /// Variable used to get API method name, in async calls
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
+
+    /// <summary>
+    /// Parameterized constructor
+    /// </summary>
+    /// <param name="userManager"></param>
+    /// <param name="userService"></param>
+    /// <param name="mapper"></param>
+    /// <param name="mailService"></param>
     public UserCreateCommandHandler(UserManager<User> userManager, IUserService userService,
         IMapper mapper, IMailService mailService)
     {
@@ -46,44 +66,61 @@ public class UserCreateCommandHandler : IRequestHandler<UserCreateCommand, UserD
         _mapper = mapper;
     }
 
+    /// <summary>
+    /// Handler method
+    /// </summary>
+    /// <param name="command"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="LoginAlreadyUsedException"></exception>
+    /// <exception cref="EmailAlreadyUsedException"></exception>
+    /// <exception cref="Exception"></exception>
     public async Task<UserDetailDto> Handle(UserCreateCommand command, CancellationToken cancellationToken)
     {
-        if (command == null) throw new ArgumentNullException(nameof(command));
-        if (command.UserDto == null) throw new ArgumentNullException(nameof(command.UserDto));
-    
-        // Lowercase the user login before comparing with database
-        if (await _userManager.FindByNameAsync(command.UserDto.Login.ToLowerInvariant()) != null)
-            throw new LoginAlreadyUsedException();
-        if (await _userManager.FindByEmailAsync(command.UserDto.Email.ToLowerInvariant()) != null)
-            throw new EmailAlreadyUsedException();
-    
-        var newUser = await _userService.CreateUser(command.UserDto);
-        if (newUser == null) throw new Exception("User creation failed.");
-    
-        await _mailService.SendCreationEmail(newUser);
-    
-        if (newUser.Position == null) throw new Exception("User position is null.");
-        if (newUser.Position.PositionPermissions == null) throw new Exception("PositionPermissions is null.");
-    
-        return new UserDetailDto
-        {
-            Id = newUser.Id,
-            FirstName = newUser.FirstName,
-            LastName = newUser.LastName,
-            Activated = newUser.Activated,
-            Email = newUser.Email,
-            CreatedBy = newUser.CreatedBy,
-            LangKey = newUser.LangKey,
-            Login = newUser.Login,
-            Position = new PositionDto
+        try {
+            if (command == null) throw new ArgumentNullException(nameof(command));
+            if (command.UserDto == null) throw new ArgumentNullException(nameof(command.UserDto));
+        
+            // Lowercase the user login before comparing with database
+            if (await _userManager.FindByNameAsync(command.UserDto.Login.ToLowerInvariant()) != null)
+                throw new LoginAlreadyUsedException();
+            if (await _userManager.FindByEmailAsync(command.UserDto.Email.ToLowerInvariant()) != null)
+                throw new EmailAlreadyUsedException();
+        
+            var newUser = await _userService.CreateUser(command.UserDto);
+            if (newUser == null) throw new Exception("User creation failed.");
+        
+            await _mailService.SendCreationEmail(newUser);
+        
+            if (newUser.Position == null) throw new Exception("User position is null.");
+            if (newUser.Position.PositionPermissions == null) throw new Exception("PositionPermissions is null.");
+        
+            return new UserDetailDto
             {
-                Id = newUser.Position.Id,
-                Name = newUser.Position.Name,
-                IsAdmin = newUser.Position.IsAdmin,
-                Permissions = newUser.Position.PositionPermissions
-                    .Select(pp => pp.Permission?.Name)
-                    .ToArray()
-            }
-        };
+                Id = newUser.Id,
+                FirstName = newUser.FirstName,
+                LastName = newUser.LastName,
+                Activated = newUser.Activated,
+                Email = newUser.Email,
+                LangKey = newUser.LangKey,
+                Login = newUser.Login,
+                ImageUrl = newUser.ImageUrl,
+                Position = new PositionDto
+                {
+                    Id = newUser.Position.Id,
+                    Name = newUser.Position.Name,
+                    IsAdmin = newUser.Position.IsAdmin,
+                    Permissions = newUser.Position.PositionPermissions
+                        .Select(pp => pp.Permission?.Name)
+                        .ToArray()
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            Log.Error(CommHelper.LogError(typeof(UserCreateCommandHandler), GetActualAsyncMethodName(), ex));
+            throw ex;
+        }
     }
 }
